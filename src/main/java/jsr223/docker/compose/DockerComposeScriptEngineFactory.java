@@ -16,7 +16,7 @@ import java.util.Properties;
 public class DockerComposeScriptEngineFactory implements ScriptEngineFactory {
 
     // External configuration
-    private static final String DOCKER_COMPOSE_CONFIGURATION_FILE_PATH = "config/docker-compose.properties";
+    private static String DOCKER_COMPOSE_CONFIGURATION_FILE_PATH = "config/docker-compose.properties";
 
     private static Properties properties = new Properties();
     private static InputStream input = null;
