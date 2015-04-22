@@ -1,5 +1,7 @@
 package jsr223.docker.compose.utils;
 
+import org.intellij.lang.annotations.RegExp;
+import org.jetbrains.annotations.NotNull;
 import processbuilder.ProcessBuilderFactory;
 import processbuilder.utils.ProcessBuilderUtilities;
 
@@ -12,6 +14,7 @@ import java.io.StringWriter;
  */
 public class DockerComposeUtilities {
 
+    @RegExp
     private final static String versionOutputRegex = "^docker-compose ";
     private final static int versionOutputPosition = 1;
 
@@ -24,10 +27,10 @@ public class DockerComposeUtilities {
      * @return The currently installed version return by the docker compose command or an empty string
      * the version could not be determined.
      */
-    public static String getDockerComposeVersion(String composeCommand, ProcessBuilderFactory factory) {
+    public static String getDockerComposeVersion(@NotNull String composeCommand, @NotNull ProcessBuilderFactory factory) {
         String result = ""; // Empty string for empty result if version recovery fails
 
-        ProcessBuilder pb = factory.getProcessBuilder(new String[]{composeCommand, "--version"});
+        ProcessBuilder pb = factory.getProcessBuilder(composeCommand, "--version");
 
         try {
             Process process = pb.start();
@@ -49,7 +52,7 @@ public class DockerComposeUtilities {
     }
 
 
-    private static String extractVersionFromOutput(String versionOutput) {
+    private static String extractVersionFromOutput(@NotNull String versionOutput) {
         // Read the command output, the output should look like
         // docker-compose [VERSION]
         String result = versionOutput.split(versionOutputRegex)[versionOutputPosition];

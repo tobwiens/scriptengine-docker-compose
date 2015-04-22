@@ -29,10 +29,11 @@ public class DockerComposeScriptEngineFactory implements ScriptEngineFactory {
     private static final String PROP_DOCKER_COMPOSE_USE_SUDO = "docker.compose.use.sudo";
     private static final String PROP_DOCKER_COMPOSE_USE_SUDO_DEFAULT = "false";
 
+
     // Docker compose configuration - are initialized when loaded into memory; static { }.
-    public static String dockerComposeCommand;
-    public static String sudoCommand;
-    public static boolean useSudo;
+    private static String dockerComposeCommand;
+    private static String sudoCommand;
+    private static boolean useSudo;
 
     // Script engine parameters
     private static final String NAME = "docker-compose";
@@ -44,44 +45,57 @@ public class DockerComposeScriptEngineFactory implements ScriptEngineFactory {
 
     // TODO: Read command from config file
     static {
+        
+        // Load config file and save into props
+        loadConfigFileIntoProperties();
 
+        // Read from properties and assign it to public cons
+        DockerComposeScriptEngineFactory.assignDockerComposeConstants();
+
+        // Write script engine parameters
+        parameters.put(ScriptEngine.NAME, NAME);
+        parameters.put(ScriptEngine.ENGINE, ENGINE);
+        parameters.put(ScriptEngine.ENGINE_VERSION, ENGINE_VERSION);
+        parameters.put(ScriptEngine.LANGUAGE, LANGUAGE);
+        parameters.put(ScriptEngine.LANGUAGE_VERSION, DockerComposeUtilities.
+                    getDockerComposeVersion(DockerComposeScriptEngineFactory.dockerComposeCommand,
+                            SingletonProcessBuilderFactory.getInstance()));
+    }
+
+    /**
+     * Resets properties and loads them from configuration a configuration file
+     */
+    private static void loadConfigFileIntoProperties() {
         try {
             // Open configuration file
             input = new FileInputStream(DOCKER_COMPOSE_CONFIGURATION_FILE_PATH);
             // Load fields
+            properties = new Properties();
             properties.load(input);
-
 
 
         } catch (java.io.IOException e) {
             // No configuration file
             System.err.println("No configuration file for docker-compose script engine.");
             System.err.println("Use standard values, execution might not work.");
-        } finally {
-
-            // Load properties
-            DockerComposeScriptEngineFactory.dockerComposeCommand =
-                    properties.getProperty(PROP_DOCKER_COMPOSE_COMMAND,
-                            PROP_DOCKER_COMPOSE_COMMAND_DEFAULT);
-            DockerComposeScriptEngineFactory.sudoCommand =
-                    properties.getProperty(PROP_SUDO_COMMAND,
-                            PROP_SUDO_COMMAND_DEFAULT);
-            DockerComposeScriptEngineFactory.useSudo =
-                    Boolean.parseBoolean(properties.getProperty(PROP_DOCKER_COMPOSE_USE_SUDO,
-                            PROP_DOCKER_COMPOSE_USE_SUDO_DEFAULT));
-
-
-            // Write script engine parameters
-            parameters.put(ScriptEngine.NAME, NAME);
-            parameters.put(ScriptEngine.ENGINE, ENGINE);
-            parameters.put(ScriptEngine.ENGINE_VERSION, ENGINE_VERSION);
-            parameters.put(ScriptEngine.LANGUAGE, LANGUAGE);
-            parameters.put(ScriptEngine.LANGUAGE_VERSION, DockerComposeUtilities.
-                    getDockerComposeVersion(DockerComposeScriptEngineFactory.dockerComposeCommand,
-                            SingletonProcessBuilderFactory.getInstance()));
+            e.printStackTrace();
         }
+    }
 
-
+    /**
+     * Assigns docker compose constant by reading them from properties or using
+     * a default value.
+     */
+    private static void assignDockerComposeConstants() {
+        DockerComposeScriptEngineFactory.dockerComposeCommand =
+                properties.getProperty(PROP_DOCKER_COMPOSE_COMMAND,
+                        PROP_DOCKER_COMPOSE_COMMAND_DEFAULT);
+        DockerComposeScriptEngineFactory.sudoCommand =
+                properties.getProperty(PROP_SUDO_COMMAND,
+                        PROP_SUDO_COMMAND_DEFAULT);
+        DockerComposeScriptEngineFactory.useSudo =
+                Boolean.parseBoolean(properties.getProperty(PROP_DOCKER_COMPOSE_USE_SUDO,
+                        PROP_DOCKER_COMPOSE_USE_SUDO_DEFAULT));
     }
 
 
@@ -144,5 +158,20 @@ public class DockerComposeScriptEngineFactory implements ScriptEngineFactory {
     @Override
     public ScriptEngine getScriptEngine() {
         return null;
+    }
+
+    /**
+     * GETTERS FOR CONSTANTS HOW TO USE THE DOCKER COMPOSE COMMAND
+     */
+    public static String getDockerComposeCommand() {
+        return dockerComposeCommand;
+    }
+
+    public static String getSudoCommand() {
+        return sudoCommand;
+    }
+
+    public static boolean isUseSudo() {
+        return useSudo;
     }
 }

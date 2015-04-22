@@ -1,5 +1,8 @@
 package processbuilder.utils;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.*;
 
 /**
@@ -15,7 +18,7 @@ public class ProcessBuilderUtilities {
      * @param processError A data sink for the process' error output. If null nothing will be attached.
      * @param processInput A data source to be streamed to the process. If null nothing will be attached.
      */
-    public static void attachStreamsToProcess(Process process, Writer processOutput, Writer processError,
+    public static void attachStreamsToProcess(@NotNull Process process, @Nullable Writer processOutput, Writer processError,
                                        Reader processInput) {
       if (processOutput != null ) {
           // Attach to std output
@@ -39,7 +42,7 @@ public class ProcessBuilderUtilities {
      * @param source Data source.
      * @param attachedSink Data sink.
      */
-    public static void attachToInputStream(final Reader source, final Writer attachedSink) {
+    public static void attachToInputStream(@NotNull final Reader source, @NotNull final Writer attachedSink) {
         new Thread() {
             public void run() {
                 try {
@@ -58,7 +61,7 @@ public class ProcessBuilderUtilities {
      * @param to Sink of data.
      * @throws IOException
      */
-    public static void pipe(Reader from, Writer to) throws IOException {
+    public static void pipe(@NotNull Reader from, @NotNull Writer to) throws IOException {
         char[] buff = new char[1024];
         int n = from.read(buff);
         while (n != -1) {
