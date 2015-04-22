@@ -3,23 +3,20 @@ package jsr223.docker.compose;
 
 import jsr223.docker.compose.utils.DockerComposeUtilities;
 import processbuilder.SingletonProcessBuilderFactory;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 public class DockerComposeScriptEngineFactory implements ScriptEngineFactory {
 
     // External configuration
-    private static String DOCKER_COMPOSE_CONFIGURATION_FILE_PATH = "config/docker-compose.properties";
+    protected static String DOCKER_COMPOSE_CONFIGURATION_FILE_PATH = "config/docker-compose.properties";
 
     private static Properties properties = new Properties();
-    private static InputStream input = null;
 
     // Configuration keys
     private static final String PROP_DOCKER_COMPOSE_COMMAND = "docker.compose.command";
@@ -38,12 +35,11 @@ public class DockerComposeScriptEngineFactory implements ScriptEngineFactory {
     // Script engine parameters
     private static final String NAME = "docker-compose";
     private static final String ENGINE = "docker-compose yaml file";
-    private static final String ENGINE_VERSION = ""; // TODO: Create versions
-    private static final String LANGUAGE = "yaml"; // TODO: correct language
+    private static final String ENGINE_VERSION = "0.1";
+    private static final String LANGUAGE = "yaml";
 
-    private static final Map<String, Object> parameters = new HashMap<String, Object>();
+    private static final Map<String, Object> parameters = new HashMap<>();
 
-    // TODO: Read command from config file
     static {
         
         // Load config file and save into props
@@ -68,12 +64,12 @@ public class DockerComposeScriptEngineFactory implements ScriptEngineFactory {
     private static void loadConfigFileIntoProperties() {
         try {
             // Open configuration file
-            input = new FileInputStream(DOCKER_COMPOSE_CONFIGURATION_FILE_PATH);
+            InputStream input = new FileInputStream(DOCKER_COMPOSE_CONFIGURATION_FILE_PATH);
             // Load fields
             properties = new Properties();
             properties.load(input);
 
-
+            input.close();
         } catch (java.io.IOException e) {
             // No configuration file
             System.err.println("No configuration file for docker-compose script engine.");
@@ -103,61 +99,60 @@ public class DockerComposeScriptEngineFactory implements ScriptEngineFactory {
     public String getEngineName() {
         return (String) parameters.get(ScriptEngine.NAME);
     }
-    // TODO: Implement
+
     @Override
     public String getEngineVersion() {
-        return null;
+        return (String) parameters.get(ScriptEngine.ENGINE_VERSION);
     }
-    // TODO: Implement
+
     @Override
     public List<String> getExtensions() {
-        return null;
+        return Arrays.asList("yml");
     }
-    // TODO: Implement
+
     @Override
     public List<String> getMimeTypes() {
-        return null;
+        return Arrays.asList("text/yaml");
     }
-    // TODO: Implement
+
     @Override
     public List<String> getNames() {
-        return null;
+        return Arrays.asList("docker-compose, fig, yaml, yaml-file, yml");
     }
-    // TODO: Implement
+
     @Override
     public String getLanguageName() {
-        return null;
+        return (String) parameters.get(ScriptEngine.LANGUAGE);
     }
-    // TODO: Implement
+
     @Override
     public String getLanguageVersion() {
-        return null;
+        return (String) parameters.get(ScriptEngine.LANGUAGE_VERSION);
     }
-    // TODO: Implement
+
     @Override
     public Object getParameter(String key) {
-        return null;
+        return parameters.get(key);
     }
-    // TODO: Implement
-    // TODO: Test
+
     @Override
     public String getMethodCallSyntax(String obj, String m, String... args) {
-        return null;
+        throw new NotImplementedException();
     }
-    // TODO: Implement
+
     @Override
     public String getOutputStatement(String toDisplay) {
-        return null;
+        throw new NotImplementedException();
     }
-    // TODO: Implement
+
     @Override
     public String getProgram(String... statements) {
-        return null;
+        throw new NotImplementedException();
     }
-    // TODO: Implement
+
     @Override
     public ScriptEngine getScriptEngine() {
-        return null;
+        return new DockerComposeScriptEngine();
     }
 
     /**
