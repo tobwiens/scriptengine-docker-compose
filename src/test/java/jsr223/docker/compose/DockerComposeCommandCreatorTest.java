@@ -14,12 +14,11 @@ import java.util.List;
  */
 public class DockerComposeCommandCreatorTest {
 
-    private static String[] mockYamlFile = {"mysqldb:","  image: mysql:latest",
-    "  environment:", "    MYSQL_DATABASE: sample"};
+    private static String mockYamlFile = "mysqldb:\n  image: mysql:latest \n  environment:\n    MYSQL_DATABASE: sample";
 
     /**
      * Thist test case checks whether the yaml file given is contained in the command.
-     * In order to succeed each line of the yaml file must be contained exactly one time.
+     * In order to create a proper yaml file each line of the given String must be contained exactly once.
      * @throws NoSuchFieldException
      * @throws IllegalAccessException
      */
@@ -27,7 +26,7 @@ public class DockerComposeCommandCreatorTest {
     public void checkYamlFileContainedInCommand() throws NoSuchFieldException, IllegalAccessException {
         // Create command line
         List<String> result = Arrays.asList(DockerComposeCommandCreator
-                .createDockerComposeExecutionCommandBash(mockYamlFile));
+                .createDockerComposeFileCreationCommand(mockYamlFile));
 
         // List all yaml file lines
         List<String> containedLines = new LinkedList<>(Arrays.asList(mockYamlFile));
@@ -40,36 +39,94 @@ public class DockerComposeCommandCreatorTest {
     }
 
     /**
-     * The yaml file which is given to the docker-compose command has a prefix and a postfix. This test
-     * checks whether the prefix and postfix are contained in the command, as specified in the class.
+     * The yaml file which is given to the docker-compose is created by a separate command, which is tested here.
      * @throws NoSuchFieldException
      * @throws IllegalAccessException
      */
     @Test
-    public void checkFileStartAndEndContainedInCommand() throws NoSuchFieldException, IllegalAccessException {
+    public void checkFileCreateStartAndEndContainedInCommand() throws NoSuchFieldException, IllegalAccessException {
         // Create command line
         List<String> result = Arrays.asList(DockerComposeCommandCreator
-                .createDockerComposeExecutionCommandBash(mockYamlFile));
+                .createDockerComposeFileCreationCommand(mockYamlFile));
 
         // Get private fields
-        Field fileStartField = ReflectionUtilities.makeFieldAccessible("bashComposeFileStart",
+        Field fileCreateStartField = ReflectionUtilities.makeFieldAccessible("bashCreateYamlFileCommandStart",
                 DockerComposeCommandCreator.class);
-        Field fileEndField = ReflectionUtilities.makeFieldAccessible("bashComposeFileEnd",
+        Field fileCreateEndField = ReflectionUtilities.makeFieldAccessible("bashCreateYamlFileCommandEnd",
                 DockerComposeCommandCreator.class);
 
         // Extract strings
-        String fileStart = (String) fileStartField.get(new DockerComposeCommandCreator());
-        String fileEnd = (String) fileEndField.get(new DockerComposeCommandCreator());
+        String fileCreateStart = (String) fileCreateStartField.get(new DockerComposeCommandCreator());
+        String fileCreateEnd = (String) fileCreateEndField.get(new DockerComposeCommandCreator());
 
-        Assert.assertEquals("The file start operator must be exactly one time in command",
+        Assert.assertEquals("The file must be created using the static fields in the class.",
                 1,
-                containedInArray(result, fileStart));
+                containedInArray(result, fileCreateStart));
 
-        Assert.assertEquals("The file end operator must be exactly one time in command",
+        Assert.assertEquals("The file must be created using the static fields in the class.",
                 1,
-                containedInArray(result, fileEnd));
+                containedInArray(result, fileCreateEnd));
+    }
+    @Test
+    public void testDockerExecutionCommandWithSudo() throws NoSuchFieldException, IllegalAccessException {
+        Field useSudoField = ReflectionUtilities.makeFieldAccessible("useSudo",
+                DockerComposeScriptEngineFactory.class);
+        boolean oldValue = (boolean) useSudoField.get(new DockerComposeScriptEngineFactory());
+
+        // Run test with sudo true
+        useSudoField.set(new DockerComposeScriptEngineFactory(), true);
+        testDockerComposeExecutionCommand();
+
+        // Run test with sudo false
+        useSudoField.set(new DockerComposeScriptEngineFactory(), false);
+        testDockerComposeExecutionCommand();
+
+        // Restore value from configuration file
+        useSudoField.set(new DockerComposeScriptEngineFactory(), oldValue);
     }
 
+    @Test
+    public void testDockerComposeExecutionCommand() throws NoSuchFieldException, IllegalAccessException {
+        String[] command = DockerComposeCommandCreator.createDockerComposeExecutionCommandBash();
+        int index = 0;
+
+        // Check for sudo command
+        if (DockerComposeScriptEngineFactory.isUseSudo()) {
+            Assert.assertEquals("Sudo command must be used when configured.",
+                    DockerComposeScriptEngineFactory.getSudoCommand(),
+                    command[index++]);
+        }
+
+        // Check for docker compose command as next command
+        Assert.assertEquals("Docker compose command must be used as read from configuration.",
+                DockerComposeScriptEngineFactory.getDockerComposeCommand(),
+                command[index++]);
+
+        // Check if file argument is used
+        Assert.assertEquals("File option must be used.",
+                ReflectionUtilities.makeFieldAccessible("filenameArgument",
+                        DockerComposeCommandCreator.class).get(new DockerComposeCommandCreator()),
+                command[index++]);
+
+        // Check if correct filename is used
+        Assert.assertEquals("Correct filename must be used in command.",
+                ReflectionUtilities.makeFieldAccessible("yamlFileName",
+                        DockerComposeCommandCreator.class).get(new DockerComposeCommandCreator()),
+                command[index++]);
+
+        // Check whether correct start command for yaml file is used
+        Assert.assertEquals("Correct argument for compose command must be used.",
+                ReflectionUtilities.makeFieldAccessible("setupContainerArgument",
+                        DockerComposeCommandCreator.class).get(new DockerComposeCommandCreator()),
+                command[index++]);
+    }
+
+    /**
+     * Counts how often one specific string is contained in a list of strings.
+     * @param array List of strings.
+     * @param containedString String to look for in the array.
+     * @return In how many strings, of the given array, the search string can be found.
+     */
     private int containedInArray(List<String> array, String containedString) {
         int result = 0;
 
