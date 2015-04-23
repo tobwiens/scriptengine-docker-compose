@@ -5,7 +5,6 @@ import org.junit.Test;
 import testing.utils.ReflectionUtilities;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,6 +17,12 @@ public class DockerComposeCommandCreatorTest {
     private static String[] mockYamlFile = {"mysqldb:","  image: mysql:latest",
     "  environment:", "    MYSQL_DATABASE: sample"};
 
+    /**
+     * Thist test case checks whether the yaml file given is contained in the command.
+     * In order to succeed each line of the yaml file must be contained exactly one time.
+     * @throws NoSuchFieldException
+     * @throws IllegalAccessException
+     */
     @Test
     public void checkYamlFileContainedInCommand() throws NoSuchFieldException, IllegalAccessException {
         // Create command line
@@ -34,6 +39,12 @@ public class DockerComposeCommandCreatorTest {
         }
     }
 
+    /**
+     * The yaml file which is given to the docker-compose command has a prefix and a postfix. This test
+     * checks whether the prefix and postfix are contained in the command, as specified in the class.
+     * @throws NoSuchFieldException
+     * @throws IllegalAccessException
+     */
     @Test
     public void checkFileStartAndEndContainedInCommand() throws NoSuchFieldException, IllegalAccessException {
         // Create command line
@@ -66,20 +77,6 @@ public class DockerComposeCommandCreatorTest {
             if (element.contains(containedString)) {
                 result += 1;
             }
-        }
-        return result;
-    }
-
-
-    private List<String> splitWithLineSeparator(List<String> stringArray) throws NoSuchFieldException, IllegalAccessException {
-        ArrayList<String> result = new ArrayList<>();
-
-        // Get line separator
-        Field lineSeparatorField = ReflectionUtilities.makeFieldAccessible("lineSeparator",
-                DockerComposeCommandCreator.class);
-        String lineSeparator = (String) lineSeparatorField.get(new DockerComposeCommandCreator());
-        for (String element : stringArray) {
-            result.addAll(Arrays.asList(element.split(lineSeparator)));
         }
         return result;
     }
