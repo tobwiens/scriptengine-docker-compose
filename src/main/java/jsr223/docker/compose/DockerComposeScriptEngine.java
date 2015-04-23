@@ -1,5 +1,7 @@
 package jsr223.docker.compose;
 
+import processbuilder.SingletonProcessBuilderFactory;
+
 import javax.script.*;
 import java.io.Reader;
 
@@ -17,13 +19,18 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
     // TODO: Test
     @Override
     public Object eval(Reader reader, ScriptContext context) throws ScriptException {
+
+        ProcessBuilder processBuilder = SingletonProcessBuilderFactory.getInstance().getProcessBuilder();
+
+        Bindings scriptBindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
+
         return null;
     }
-    // TODO: Implement
-    // TODO: Test
+
     @Override
     public Bindings createBindings() {
-        return null;
+
+        return new SimpleBindings();
     }
     // TODO: Implement
     // TODO: Test

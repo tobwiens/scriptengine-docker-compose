@@ -2,6 +2,7 @@ package jsr223.docker.compose;
 
 import org.junit.Assert;
 import org.junit.Test;
+import testing.utils.ReflectionUtilities;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -66,11 +67,11 @@ public class DockerComposeScriptEngineFactoryTest {
         String ownConfigFile = "freakyOptions.properties";
 
         Properties ownProperties = new Properties();
-        Field composeCommandField = makeFieldAccessible("PROP_DOCKER_COMPOSE_COMMAND",
+        Field composeCommandField = ReflectionUtilities.makeFieldAccessible("PROP_DOCKER_COMPOSE_COMMAND",
                 DockerComposeScriptEngineFactory.class);
-        Field sudoCommandField = makeFieldAccessible("PROP_SUDO_COMMAND",
+        Field sudoCommandField = ReflectionUtilities.makeFieldAccessible("PROP_SUDO_COMMAND",
                 DockerComposeScriptEngineFactory.class);
-        Field useSudoField = makeFieldAccessible("PROP_DOCKER_COMPOSE_USE_SUDO",
+        Field useSudoField = ReflectionUtilities.makeFieldAccessible("PROP_DOCKER_COMPOSE_USE_SUDO",
                 DockerComposeScriptEngineFactory.class);
 
         ownProperties.setProperty((String) composeCommandField.get(new DockerComposeScriptEngineFactory()),
@@ -155,21 +156,5 @@ public class DockerComposeScriptEngineFactoryTest {
         //noinspection NullArgumentToVariableArgMethod
         reloadProperties.invoke(new DockerComposeScriptEngine(), null);
     }
-
-
-    /**
-     * Returns an accessible field from a class.
-     * @param propertyName Property/Field name of class.
-     * @param targetClass Class from which to acquire a field.
-     * @return A field which was made accessible.
-     * @throws NoSuchFieldException
-     */
-    private Field makeFieldAccessible(String propertyName, Class<?> targetClass) throws NoSuchFieldException {
-        Field commandDefault;
-        commandDefault = targetClass.getDeclaredField(propertyName);
-        commandDefault.setAccessible(true);
-        return commandDefault;
-    }
-
 
 }
