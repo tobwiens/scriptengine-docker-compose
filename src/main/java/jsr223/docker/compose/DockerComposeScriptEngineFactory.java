@@ -107,7 +107,7 @@ public class DockerComposeScriptEngineFactory implements ScriptEngineFactory {
 
     @Override
     public List<String> getExtensions() {
-        return Arrays.asList("yml");
+        return Arrays.asList("yml", "yaml");
     }
 
     @Override
