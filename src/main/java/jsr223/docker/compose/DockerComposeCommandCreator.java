@@ -18,6 +18,7 @@ public class DockerComposeCommandCreator {
     private static String setupContainerArgument = "up";
 
 
+    // TODO: Maybe: Creating a file with java would be better!!!???
     /**
      * Creates and returns a command which creates a file to be read by the docker-compose client.
      * @param yamlFile
