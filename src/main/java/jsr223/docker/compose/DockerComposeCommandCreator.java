@@ -23,7 +23,7 @@ public class DockerComposeCommandCreator {
     // TODO: Maybe: Creating a file with java would be better!!!???
     /**
      * Creates and returns a command which creates a file to be read by the docker-compose client.
-     * @param yamlFile create yaml file which will be used for the docker-compose exeuction
+     * @param yamlFile create yaml file which will be used for the docker-compose execution
      * @return
      */
     @NotNull

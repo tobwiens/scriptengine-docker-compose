@@ -55,7 +55,7 @@ public class ProcessBuilderUtilities {
     }
     // TODO: Test
     /**
-     * Pipes all data from a reader (source) to a writer (sink) until an I/O exection occurs or the
+     * Pipes all data from a reader (source) to a writer (sink) until an I/O execution occurs or the
      * end of the source is reached.
      * @param from Source of data.
      * @param to Sink of data.
