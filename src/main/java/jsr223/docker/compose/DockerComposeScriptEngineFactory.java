@@ -7,14 +7,16 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
-import java.io.FileInputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.util.*;
 
 public class DockerComposeScriptEngineFactory implements ScriptEngineFactory {
 
     // External configuration
-    protected static String DOCKER_COMPOSE_CONFIGURATION_FILE_PATH = "config/docker-compose.properties";
+    protected static String DOCKER_COMPOSE_CONFIGURATION_FILENAME = "docker-compose.properties";
+    protected static String DOCKER_COMPOSE_CONFIGURATION_PATH = ClassLoader
+            .getSystemClassLoader().getResource(".").getPath()
+            +"config/";
 
     private static Properties properties = new Properties();
 
@@ -64,7 +66,8 @@ public class DockerComposeScriptEngineFactory implements ScriptEngineFactory {
     private static void loadConfigFileIntoProperties() {
         try {
             // Open configuration file
-            InputStream input = new FileInputStream(DOCKER_COMPOSE_CONFIGURATION_FILE_PATH);
+            InputStream input = new FileInputStream(
+                    DOCKER_COMPOSE_CONFIGURATION_PATH+DOCKER_COMPOSE_CONFIGURATION_FILENAME);
             // Load fields
             properties = new Properties();
             properties.load(input);
@@ -72,9 +75,10 @@ public class DockerComposeScriptEngineFactory implements ScriptEngineFactory {
             input.close();
         } catch (java.io.IOException e) {
             // No configuration file
-            System.err.println("No configuration file for docker-compose script engine.");
+            System.err.println("No configuration file for docker-compose script engine found: "
+                   + DOCKER_COMPOSE_CONFIGURATION_PATH + DOCKER_COMPOSE_CONFIGURATION_FILENAME);
+            System.err.println(e.getMessage());
             System.err.println("Use standard values, execution might not work.");
-            e.printStackTrace();
         }
     }
 

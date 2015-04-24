@@ -117,7 +117,7 @@ public class DockerComposeScriptEngineFactoryTest {
      */
     private void checkAssignmentOfConfigFile(String configurationFilePath, String expectedComposeCommand, String expectedSudoCommand, String expectedUsageOfSudo) throws NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         Field configPath = DockerComposeScriptEngineFactory.class
-                .getDeclaredField("DOCKER_COMPOSE_CONFIGURATION_FILE_PATH");
+                .getDeclaredField("DOCKER_COMPOSE_CONFIGURATION_FILENAME");
         configPath.setAccessible(true);
 
         // Save old value and set new vale

@@ -113,7 +113,7 @@ public class DockerComposeCommandCreatorTest {
      */
     @Test
     public void testDockerComposeRemoveCommand() throws NoSuchFieldException, IllegalAccessException {
-        String[] command = DockerComposeCommandCreator.createDockerComposeStopCommand();
+        String[] command = DockerComposeCommandCreator.createDockerComposeRemoveCommand();
         // Running index; which position of array will currently be checked.
         int index = 0;
 
