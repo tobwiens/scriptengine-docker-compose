@@ -24,7 +24,7 @@ public class DockerComposeCommandCreator {
     /**
      * Creates and returns a command which creates a file to be read by the docker-compose client.
      * @param yamlFile create yaml file which will be used for the docker-compose execution
-     * @return
+     * @return String array representing a command.
      */
     @NotNull
     public static String[] createDockerComposeFileCreationCommand(@NotNull String yamlFile) {

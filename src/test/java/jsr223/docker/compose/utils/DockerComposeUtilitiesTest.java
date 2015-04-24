@@ -29,12 +29,12 @@ public class DockerComposeUtilitiesTest {
 
             int index = 0;
             for (String element: expectedInput) {
-                Assert.assertTrue("Command must match "+expectedInput, element.equals(command[index++]));
+                Assert.assertTrue("Command must match "+element, element.equals(command[index++]));
             }
 
             return new ProcessBuilder();
         }
-    };
+    }
 
     /**
      * This test is checking whether the right command is given to the process builder.
@@ -70,10 +70,6 @@ public class DockerComposeUtilitiesTest {
         // Make accessible
         regexString.setAccessible(true);
         positionInt.setAccessible(true);
-
-        // Get values
-        String regex = (String) regexString.get(new DockerComposeUtilitiesTest());
-        int position = positionInt.getInt(new DockerComposeUtilitiesTest());
 
         // Get extraction method
         Method extractWithRegex = DockerComposeUtilities.class.getDeclaredMethod("extractVersionFromOutput", String.class);
