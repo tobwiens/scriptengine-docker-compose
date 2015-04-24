@@ -85,22 +85,61 @@ public class DockerComposeCommandCreatorTest {
         useSudoField.set(new DockerComposeScriptEngineFactory(), oldValue);
     }
 
+    /**
+     * Test whether the stop command has the right structure.
+     * @throws NoSuchFieldException
+     * @throws IllegalAccessException
+     */
+    @Test
+    public void testDockerComposeStopCommand() throws NoSuchFieldException, IllegalAccessException {
+        String[] command = DockerComposeCommandCreator.createDockerComposeStopCommand();
+        // Running index; which position of array will currently be checked.
+        int index = 0;
+
+        // Check if sudo is added correctly
+        index = checkSudoAndComposeCommand(command, index);
+
+        // Check if stop argument is next
+        Assert.assertEquals("Stop option must be used.",
+                ReflectionUtilities.makeFieldAccessible("stopContainerArgument",
+                        DockerComposeCommandCreator.class).get(new DockerComposeCommandCreator()),
+        command[index++]);
+    }
+
+    /**
+     * Test whether the remove command has the right structure.
+     * @throws NoSuchFieldException
+     * @throws IllegalAccessException
+     */
+    @Test
+    public void testDockerComposeRemoveCommand() throws NoSuchFieldException, IllegalAccessException {
+        String[] command = DockerComposeCommandCreator.createDockerComposeStopCommand();
+        // Running index; which position of array will currently be checked.
+        int index = 0;
+
+        // Check if sudo is added correctly
+        index = checkSudoAndComposeCommand(command, index);
+
+        // Check if stop argument is next
+        Assert.assertEquals("Stop option must be used.",
+                ReflectionUtilities.makeFieldAccessible("removeContainerArgument",
+                        DockerComposeCommandCreator.class).get(new DockerComposeCommandCreator()),
+                command[index++]);
+    }
+
+    /**
+     * Check whether the exeuction command has the right structure.
+     * @throws NoSuchFieldException
+     * @throws IllegalAccessException
+     */
     @Test
     public void testDockerComposeExecutionCommand() throws NoSuchFieldException, IllegalAccessException {
         String[] command = DockerComposeCommandCreator.createDockerComposeExecutionCommand();
         int index = 0;
 
-        // Check for sudo command
-        if (DockerComposeScriptEngineFactory.isUseSudo()) {
-            Assert.assertEquals("Sudo command must be used when configured.",
-                    DockerComposeScriptEngineFactory.getSudoCommand(),
-                    command[index++]);
-        }
+        // Check if sudo and compose command are added correctly
+        index = checkSudoAndComposeCommand(command, index);
 
-        // Check for docker compose command as next command
-        Assert.assertEquals("Docker compose command must be used as read from configuration.",
-                DockerComposeScriptEngineFactory.getDockerComposeCommand(),
-                command[index++]);
 
         // Check if file argument is used
         Assert.assertEquals("File option must be used.",
@@ -119,6 +158,21 @@ public class DockerComposeCommandCreatorTest {
                 ReflectionUtilities.makeFieldAccessible("setupContainerArgument",
                         DockerComposeCommandCreator.class).get(new DockerComposeCommandCreator()),
                 command[index++]);
+    }
+
+    private int checkSudoAndComposeCommand(String[] command, int index) {
+        // Check for sudo command
+        if (DockerComposeScriptEngineFactory.isUseSudo()) {
+            Assert.assertEquals("Sudo command must be used when configured.",
+                    DockerComposeScriptEngineFactory.getSudoCommand(),
+                    command[index++]);
+        }
+
+        // Check for docker compose command as next command
+        Assert.assertEquals("Docker compose command must be used as read from configuration.",
+                DockerComposeScriptEngineFactory.getDockerComposeCommand(),
+                command[index++]);
+        return index;
     }
 
     /**

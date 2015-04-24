@@ -34,7 +34,7 @@ public class DockerComposeScriptEngineFactory implements ScriptEngineFactory {
 
     // Script engine parameters
     private static final String NAME = "docker-compose";
-    private static final String ENGINE = "docker-compose yaml file";
+    private static final String ENGINE = "docker-compose";
     private static final String ENGINE_VERSION = "0.1";
     private static final String LANGUAGE = "yaml";
 
@@ -117,7 +117,7 @@ public class DockerComposeScriptEngineFactory implements ScriptEngineFactory {
 
     @Override
     public List<String> getNames() {
-        return Arrays.asList("docker-compose, fig, yaml, yaml-file, yml");
+        return Arrays.asList("docker-compose", "fig");
     }
 
     @Override
