@@ -26,6 +26,7 @@ public class DockerComposeCommandCreator {
      * @param yamlFile create yaml file which will be used for the docker-compose exeuction
      * @return
      */
+    @NotNull
     public static String[] createDockerComposeFileCreationCommand(@NotNull String yamlFile) {
         ArrayList<String> command = new ArrayList<>();
         command.add(bashCreateYamlFileCommandStart);
@@ -38,6 +39,7 @@ public class DockerComposeCommandCreator {
      * Construct the docker compose stop command.
      * @return String array representing a command.
      */
+    @NotNull
     public static String[] createDockerComposeStopCommand() {
         List<String> command = new ArrayList<>();
         addSudoAndDockerComposeCommand(command);
@@ -50,6 +52,7 @@ public class DockerComposeCommandCreator {
      * Construct docker compose remove command.
      * @return String array representing a command.
      */
+    @NotNull
     public static String[] createDockerComposeRemoveCommand() {
         List<String> command = new ArrayList<>();
         addSudoAndDockerComposeCommand(command);
@@ -64,6 +67,7 @@ public class DockerComposeCommandCreator {
      * @return A String array which contains the command as a separate @String and each
      * argument as a separate String.
      */
+    @NotNull
     public static String[] createDockerComposeExecutionCommand() {
         List<String> command = new ArrayList<>();
         addSudoAndDockerComposeCommand(command);
@@ -77,11 +81,15 @@ public class DockerComposeCommandCreator {
 
         // Start container with argument
         command.add(setupContainerArgument);
-
         return command.toArray(new String[command.size()]);
     }
 
-    private static void addSudoAndDockerComposeCommand(List<String> command) {
+    /**
+     * Adds sudo and docker compose command to the given list. Sudo is only added when
+     * it is configured to do that.
+     * @param command List which gets the command(s) added.
+     */
+    private static void addSudoAndDockerComposeCommand(@NotNull List<String> command) {
         // Add sudo if necessary
         if (DockerComposeScriptEngineFactory.isUseSudo()) {
             command.add(DockerComposeScriptEngineFactory.getSudoCommand());
