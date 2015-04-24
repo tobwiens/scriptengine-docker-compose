@@ -21,7 +21,7 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
     @Override
     public Object eval(String script, ScriptContext context) throws ScriptException {
         // Create docker compose command
-        String[] dockerComposeCommand = DockerComposeCommandCreator.createDockerComposeExecutionCommandBash();
+        String[] dockerComposeCommand = DockerComposeCommandCreator.createDockerComposeExecutionCommand();
 
         // Create a process builder
         ProcessBuilder processBuilder = SingletonProcessBuilderFactory
@@ -43,9 +43,17 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
             // Wait for process to exit
             int returnValue = process.waitFor();
 
-            // TODO: Stop containers
+            // Stop containers
+            SingletonProcessBuilderFactory
+                    .getInstance()
+                    .getProcessBuilder(DockerComposeCommandCreator.createDockerComposeStopCommand())
+                    .start().waitFor();
 
-            // TODO: Remove containers
+            // Remove containers
+            SingletonProcessBuilderFactory
+                    .getInstance()
+                    .getProcessBuilder(DockerComposeCommandCreator.createDockerComposeRemoveCommand())
+                    .start().waitFor();
 
             return returnValue;
 

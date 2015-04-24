@@ -87,7 +87,7 @@ public class DockerComposeCommandCreatorTest {
 
     @Test
     public void testDockerComposeExecutionCommand() throws NoSuchFieldException, IllegalAccessException {
-        String[] command = DockerComposeCommandCreator.createDockerComposeExecutionCommandBash();
+        String[] command = DockerComposeCommandCreator.createDockerComposeExecutionCommand();
         int index = 0;
 
         // Check for sudo command
