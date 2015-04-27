@@ -16,3 +16,11 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
     testCompile 'org.jmockit:jmockit:1.16'
 }
+
+// Must be called after dependencies
+jar {
+    manifest {
+        attributes(
+                "Class-Path": "config/ ")
+    }
+}

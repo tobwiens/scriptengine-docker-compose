@@ -2,21 +2,21 @@ package jsr223.docker.compose;
 
 
 import jsr223.docker.compose.utils.DockerComposeUtilities;
+import org.jetbrains.annotations.NotNull;
 import processbuilder.SingletonProcessBuilderFactory;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.*;
 
 public class DockerComposeScriptEngineFactory implements ScriptEngineFactory {
 
     // External configuration
     protected static String DOCKER_COMPOSE_CONFIGURATION_FILENAME = "docker-compose.properties";
-    protected static String DOCKER_COMPOSE_CONFIGURATION_PATH = ClassLoader
-            .getSystemClassLoader().getResource(".").getPath()
-            +"config/";
 
     private static Properties properties = new Properties();
 
@@ -61,13 +61,29 @@ public class DockerComposeScriptEngineFactory implements ScriptEngineFactory {
     }
 
     /**
+     * Checks for the docker-compose script engine configuration file. This method relies that
+     * the manifest of the jar points to a directory which contains a configuration file.
+     * @return Path and filename of docker compose configuration file if config file was found.
+     * Configuration filename without path when file was not found in resources.
+     */
+    @NotNull
+    private static String getConfigFilePath() {
+        URL configFileURL = ClassLoader
+                .getSystemClassLoader().getResource(DOCKER_COMPOSE_CONFIGURATION_FILENAME);
+        if ( configFileURL != null ) {
+            return configFileURL.getPath();
+        } else {
+            return DOCKER_COMPOSE_CONFIGURATION_FILENAME;
+        }
+    }
+
+    /**
      * Resets properties and loads them from configuration a configuration file
      */
     private static void loadConfigFileIntoProperties() {
         try {
             // Open configuration file
-            InputStream input = new FileInputStream(
-                    DOCKER_COMPOSE_CONFIGURATION_PATH+DOCKER_COMPOSE_CONFIGURATION_FILENAME);
+            InputStream input = new FileInputStream(getConfigFilePath());
             // Load fields
             properties = new Properties();
             properties.load(input);
@@ -76,7 +92,7 @@ public class DockerComposeScriptEngineFactory implements ScriptEngineFactory {
         } catch (java.io.IOException e) {
             // No configuration file
             System.err.println("No configuration file for docker-compose script engine found: "
-                   + DOCKER_COMPOSE_CONFIGURATION_PATH + DOCKER_COMPOSE_CONFIGURATION_FILENAME);
+                   + DOCKER_COMPOSE_CONFIGURATION_FILENAME);
             System.err.println(e.getMessage());
             System.err.println("Use standard values, execution might not work.");
         }
