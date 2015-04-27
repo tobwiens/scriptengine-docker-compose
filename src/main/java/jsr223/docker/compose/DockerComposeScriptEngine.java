@@ -5,8 +5,8 @@ import processbuilder.SingletonProcessBuilderFactory;
 import processbuilder.utils.ProcessBuilderUtilities;
 
 import javax.script.*;
-import java.io.IOException;
-import java.io.Reader;
+import java.io.*;
+import java.nio.file.FileAlreadyExistsException;
 import java.util.Map;
 
 /**
@@ -29,8 +29,20 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
 
         // Add string bindings as environment variables
         addBindingToStringMap(context.getBindings(ScriptContext.ENGINE_SCOPE), processBuilder.environment());
-
+        File composeYamlFile = new File(DockerComposeCommandCreator.getYamlFileName());
         try {
+            // Create configuration file
+
+            if ( composeYamlFile.createNewFile() == false ) {
+                throw new FileAlreadyExistsException("Configuration file already exists: "
+                        +DockerComposeCommandCreator.getYamlFileName());
+            }
+
+            // Force configuration file to disk
+            Writer configFileWriter = new FileWriter(composeYamlFile);
+            configFileWriter.write(script);
+            configFileWriter.close();
+
             // Start process
             Process process = processBuilder.start();
 
@@ -65,6 +77,9 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
             // the container are stopped even though several interrupts could
             // occur. Therefore start a thread which will remove all container.
             // TODO: Start thread which will stop and remove container in the background
+        } finally {
+            // Delete configuration file
+            composeYamlFile.delete();
         }
 
 
@@ -75,7 +90,15 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
     @Override
     public Object eval(Reader reader, ScriptContext context) throws ScriptException {
 
-        return null;
+        StringWriter stringWriter = new StringWriter();
+
+        try {
+            ProcessBuilderUtilities.pipe(reader, stringWriter);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return eval(stringWriter.toString(), context);
     }
 
     /**

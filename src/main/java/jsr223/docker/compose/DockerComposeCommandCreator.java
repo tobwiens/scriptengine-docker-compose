@@ -11,29 +11,13 @@ public class DockerComposeCommandCreator {
 
     // Constants
     private static String yamlFileName = "docker-compose.yml";
-    private static String bashCreateYamlFileCommandStart = "echo \"";
-    private static String bashCreateYamlFileCommandEnd = "\" > "+yamlFileName;
     private static String lineSeparator = "\n";
     private static String filenameArgument = "-f";
     private static String stopContainerArgument = "stop";
     private static String removeContainerArgument = "rm";
+    private static String removeWithForceContainerArgument = "--force";
     private static String setupContainerArgument = "up";
 
-
-    // TODO: Maybe: Creating a file with java would be better!!!???
-    /**
-     * Creates and returns a command which creates a file to be read by the docker-compose client.
-     * @param yamlFile create yaml file which will be used for the docker-compose execution
-     * @return String array representing a command.
-     */
-    @NotNull
-    public static String[] createDockerComposeFileCreationCommand(@NotNull String yamlFile) {
-        ArrayList<String> command = new ArrayList<>();
-        command.add(bashCreateYamlFileCommandStart);
-        command.addAll(Arrays.asList(escapeArrayOfStringsForBash(yamlFile)));
-        command.add(bashCreateYamlFileCommandEnd);
-        return command.toArray(new String[command.size()]);
-    }
 
     /**
      * Construct the docker compose stop command.
@@ -57,7 +41,9 @@ public class DockerComposeCommandCreator {
         List<String> command = new ArrayList<>();
         addSudoAndDockerComposeCommand(command);
 
+        // Remove container with force; otherwise user input is expected.
         command.add(removeContainerArgument);
+        command.add(removeWithForceContainerArgument);
         return command.toArray(new String[command.size()]);
     }
 
@@ -140,5 +126,9 @@ public class DockerComposeCommandCreator {
             string = string.replace(replaceEntry, replaceMap.get(replaceEntry));
         }
         return string;
+    }
+
+    public static String getYamlFileName() {
+        return yamlFileName;
     }
 }

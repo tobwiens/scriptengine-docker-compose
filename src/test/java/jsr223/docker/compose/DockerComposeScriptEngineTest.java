@@ -17,6 +17,8 @@ import java.io.IOException;
 public class DockerComposeScriptEngineTest {
 
 
+    // TODO: Test if configuration file is written to disk
+    // TODO: Test if configuration file is deleted after usage
 
     @Test
     public void checkProcessBuilderExecution(@Mocked final ProcessBuilder pb) throws IOException, InterruptedException, ScriptException {
