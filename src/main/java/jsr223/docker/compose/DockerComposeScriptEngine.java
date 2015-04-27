@@ -27,8 +27,15 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
         ProcessBuilder processBuilder = SingletonProcessBuilderFactory
                 .getInstance().getProcessBuilder(dockerComposeCommand);
 
+        // Use process builder environment and fill it with environment variables
+        Map<String, String> variablesMap = processBuilder.environment();
+
         // Add string bindings as environment variables
-        addBindingToStringMap(context.getBindings(ScriptContext.ENGINE_SCOPE), processBuilder.environment());
+        addBindingToStringMap(context.getBindings(ScriptContext.ENGINE_SCOPE), variablesMap);
+
+        // Replace variables in configuration file
+        script = replaceVariables(script, variablesMap);
+
         File composeYamlFile = new File(DockerComposeCommandCreator.getYamlFileName());
         try {
             // Create configuration file
@@ -101,6 +108,15 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
         return eval(stringWriter.toString(), context);
     }
 
+    private String replaceVariables(String script, Map<String, String> variables) {
+        String result = script;
+        // Replace all variables one by one
+        for (Map.Entry<String, String> variable : variables.entrySet() ) {
+            result = result.replace("$"+variable.getKey(), variable.getValue());
+        }
+        return result;
+    }
+
     /**
      * Adds all bindings which are from type @String to the environment map. All other bindings are printed
      * with toString() to std.err with an error message.
@@ -111,11 +127,22 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
         for(Map.Entry<String, Object> entry: bindings.entrySet()) {
             if (entry.getValue() instanceof String) {
                 environment.put(entry.getKey(),(String) entry.getValue());
-            } else {
-                System.err.println("Ignored binding: "+entry.getValue().toString());
+                System.out.println("Added binding: "+entry.getKey()+":"+entry.getValue().toString());
+            } else { // Go through maps and add String String values to the environment map.
+                if (entry.getValue() instanceof Map<?, ?>)
+                    for (Map.Entry<?, ?> mapEntry :  ((Map<?,?>) entry.getValue()).entrySet()) {
+                        if (mapEntry.getValue() instanceof String && mapEntry.getKey() instanceof String) {
+                            environment.put((String) mapEntry.getKey(), (String) mapEntry.getValue());
+                            System.out.println("Added binding: "+mapEntry.getKey()+":"+mapEntry.getValue().toString());
+                        }
+                    }
+                else {
+                    System.err.println("Ignored binding: " + entry.getKey() + "(" + entry.getKey().getClass().getName() + "):" + entry.getValue().toString() + "(" + entry.getValue().getClass().getName() + ")");
+                }
             }
         }
     }
+
 
     @Override
     public Bindings createBindings() {
