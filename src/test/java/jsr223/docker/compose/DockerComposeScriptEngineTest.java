@@ -2,6 +2,7 @@ package jsr223.docker.compose;
 
 import mockit.Expectations;
 import mockit.Mocked;
+import mockit.VerificationsInOrder;
 import mockit.integration.junit4.JMockit;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -10,6 +11,7 @@ import javax.script.ScriptContext;
 import javax.script.ScriptException;
 import javax.script.SimpleBindings;
 import javax.script.SimpleScriptContext;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
@@ -30,14 +32,43 @@ public class DockerComposeScriptEngineTest {
             + "    command: echo \"Hello World\"";
 
 
+    /**
+     * Test whether file is forced to disk. With a write flush and afterwards deleted.
+     * @param configFileWriter Mocked file writer.
+     * @throws IOException Should not be thrown.
+     * @throws ScriptException Should not be thrown.
+     */
+    @Test
+    public void testWhetherScriptIsForcedToDiskAndDeleted(@Mocked final FileWriter configFileWriter,
+                                                          @Mocked final ProcessBuilder pb ) throws IOException, ScriptException, InterruptedException {
+        ScriptContext context = new SimpleScriptContext();
 
-    // TODO: Test if configuration file is written to disk
-    // TODO: Test if configuration file is deleted after usage
+        context.setErrorWriter(null);
+        context.setReader(null);
+        context.setErrorWriter(null);
 
-    // TODO: Test whether String String maps are added as variables.
+        DockerComposeScriptEngine dcse = new DockerComposeScriptEngine();
+        dcse.eval(yamlFileExpected, context);
+
+        new VerificationsInOrder() {
+            {
+                // Expect that script with substituted variables is written to disk
+                configFileWriter.write(yamlFileExpected);
+                // Check whether file is close, for docker-compose command to open it.
+                configFileWriter.close();
+                // After writing the file to disk and closing it the process builder is called
+                pb.start().waitFor();
+            }
+        };
+
+
+        org.junit.Assert.assertEquals("Configuration file must be deleted.",
+                new File(DockerComposeCommandCreator.getYamlFileName()).exists(),
+        false);
+    }
 
     /**
-     * Put variables inta a HashMap<String,String> and test whether its variables are substituted
+     * Put variables into a HashMap<String,String> and test whether its variables are substituted
      * correctly.
      * @param configFileWriter Mock FileWriter object, to check if correct file is written.
      * @throws ScriptException Should not be thrown.
