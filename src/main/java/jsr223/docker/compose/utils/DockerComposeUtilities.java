@@ -1,6 +1,6 @@
 package jsr223.docker.compose.utils;
 
-import org.intellij.lang.annotations.RegExp;
+import jsr223.docker.compose.DockerComposeCommandCreator;
 import org.jetbrains.annotations.NotNull;
 import processbuilder.ProcessBuilderFactory;
 import processbuilder.utils.ProcessBuilderUtilities;
@@ -9,28 +9,21 @@ import java.io.IOException;
 import java.io.StringWriter;
 
 
-/**
- * Created on 4/21/2015.
- */
+
 public class DockerComposeUtilities {
-
-    @RegExp
-    private final static String versionOutputRegex = "^docker-compose ";
-    private final static int versionOutputPosition = 1;
-
     // TODO: Add logger
-
-    // TODO: Test
     /**
      * Retrieves the docker compose version.
-     * @param composeCommand The docker compose command. Example "/bin/sudo/docker-compose"
      * @return The currently installed version return by the docker compose command or an empty string
      * the version could not be determined.
      */
-    public static String getDockerComposeVersion(@NotNull String composeCommand, @NotNull ProcessBuilderFactory factory) {
+    public static String getDockerComposeVersion(@NotNull ProcessBuilderFactory factory) {
         String result = ""; // Empty string for empty result if version recovery fails
 
-        ProcessBuilder pb = factory.getProcessBuilder(composeCommand, "--version");
+        ProcessBuilder pb = factory.getProcessBuilder(DockerComposePropertyLoader
+                .getInstance()
+                .getDockerComposeCommand(),
+                "--version");
 
         try {
             Process process = pb.start();
@@ -43,7 +36,7 @@ public class DockerComposeUtilities {
             process.waitFor();
 
             // Extract output
-            result = DockerComposeUtilities.extractVersionFromOutput(commandOutput.toString());
+            result = commandOutput.toString();
         } catch (IOException|InterruptedException|IndexOutOfBoundsException  e){
             System.err.println("Failed to retrieve docker compose version.");
             e.printStackTrace();
@@ -51,11 +44,4 @@ public class DockerComposeUtilities {
         return result;
     }
 
-
-    private static String extractVersionFromOutput(@NotNull String versionOutput) {
-        // Read the command output, the output should look like
-        // docker-compose [VERSION]
-        String result = versionOutput.split(versionOutputRegex)[versionOutputPosition];
-        return result;
-    }
 }

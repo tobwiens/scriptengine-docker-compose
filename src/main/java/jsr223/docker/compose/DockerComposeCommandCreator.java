@@ -1,17 +1,15 @@
 package jsr223.docker.compose;
 
+import jsr223.docker.compose.utils.DockerComposePropertyLoader;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-/**
- * Created on 4/23/2015.
- */
 public class DockerComposeCommandCreator {
 
     // Constants
+    @lombok.Getter
     private static String yamlFileName = "docker-compose.yml";
-    private static String lineSeparator = "\n";
     private static String filenameArgument = "-f";
     private static String stopContainerArgument = "stop";
     private static String removeContainerArgument = "rm";
@@ -77,58 +75,11 @@ public class DockerComposeCommandCreator {
      */
     private static void addSudoAndDockerComposeCommand(@NotNull List<String> command) {
         // Add sudo if necessary
-        if (DockerComposeScriptEngineFactory.isUseSudo()) {
-            command.add(DockerComposeScriptEngineFactory.getSudoCommand());
+        if (DockerComposePropertyLoader.getInstance().isUseSudo()) {
+            command.add(DockerComposePropertyLoader.getInstance().getSudoCommand());
         }
 
         // Add docker compose command
-        command.add(DockerComposeScriptEngineFactory.getDockerComposeCommand());
-    }
-
-    /**
-     * This methods creates an escape map. All future escapes necessary to run a compose script properly
-     * will be added.
-     * @return A map which contains a key (string to be replaced) and a value (replaced).
-     */
-    private static Map<String,String> getEscapeMap() {
-        Map<String, String> replaceThat = new HashMap<>();
-
-        // Add everything which should be escaped and how
-        // Replace " with \"
-        replaceThat.put("\"", "\\\"");
-
-        return replaceThat;
-    }
-
-    /**
-     * Escape an array of @Strings.
-     * @param stringsToEscape Array where each string will be escaped.
-     * @return Array which contains all
-     */
-    private static String[] escapeArrayOfStringsForBash(@NotNull String... stringsToEscape) {
-        ArrayList<String> result = new ArrayList<>();
-        Map<String, String> replaceThat = getEscapeMap();
-
-        for (String line : stringsToEscape) {
-            result.add(replaceAllOccurrences(line, replaceThat));
-        }
-        return result.toArray(new String[result.size()]);
-    }
-
-    /**
-     * Replaces all occurrences in a String given via a Map<StringToReplace,Replaced>.
-     * @param string String which will have replaced all occurrences.
-     * @param replaceMap Map<StringToReplace,Replaced>.
-     * @return String where all occurrences are replaced.
-     */
-    private static String replaceAllOccurrences(@NotNull String string, @NotNull Map<String, String> replaceMap) {
-        for (String replaceEntry : replaceMap.keySet()) {
-            string = string.replace(replaceEntry, replaceMap.get(replaceEntry));
-        }
-        return string;
-    }
-
-    public static String getYamlFileName() {
-        return yamlFileName;
+        command.add(DockerComposePropertyLoader.getInstance().getDockerComposeCommand());
     }
 }
