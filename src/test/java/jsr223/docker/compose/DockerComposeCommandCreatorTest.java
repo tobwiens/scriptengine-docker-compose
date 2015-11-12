@@ -1,5 +1,6 @@
 package jsr223.docker.compose;
 
+import jsr223.docker.compose.utils.DockerComposePropertyLoader;
 import org.junit.Assert;
 import org.junit.Test;
 import testing.utils.ReflectionUtilities;
@@ -7,27 +8,24 @@ import testing.utils.ReflectionUtilities;
 import java.lang.reflect.Field;
 import java.util.List;
 
-/**
- * Created on 4/23/2015.
- */
 public class DockerComposeCommandCreatorTest {
 
     @Test
     public void testDockerExecutionCommandWithSudo() throws NoSuchFieldException, IllegalAccessException {
         Field useSudoField = ReflectionUtilities.makeFieldAccessible("useSudo",
-                DockerComposeScriptEngineFactory.class);
-        boolean oldValue = (boolean) useSudoField.get(new DockerComposeScriptEngineFactory());
+                DockerComposePropertyLoader.class);
+        boolean oldValue = (boolean) useSudoField.get(DockerComposePropertyLoader.getInstance());
 
         // Run test with sudo true
-        useSudoField.set(new DockerComposeScriptEngineFactory(), true);
+        useSudoField.set(DockerComposePropertyLoader.getInstance(), true);
         testDockerComposeExecutionCommand();
 
         // Run test with sudo false
-        useSudoField.set(new DockerComposeScriptEngineFactory(), false);
+        useSudoField.set(DockerComposePropertyLoader.getInstance(), false);
         testDockerComposeExecutionCommand();
 
         // Restore value from configuration file
-        useSudoField.set(new DockerComposeScriptEngineFactory(), oldValue);
+        useSudoField.set(DockerComposePropertyLoader.getInstance(), oldValue);
     }
 
     /**
@@ -113,33 +111,16 @@ public class DockerComposeCommandCreatorTest {
 
     private int checkSudoAndComposeCommand(String[] command, int index) {
         // Check for sudo command
-        if (DockerComposeScriptEngineFactory.isUseSudo()) {
+        if (DockerComposePropertyLoader.getInstance().isUseSudo()) {
             Assert.assertEquals("Sudo command must be used when configured.",
-                    DockerComposeScriptEngineFactory.getSudoCommand(),
+                    DockerComposePropertyLoader.getInstance().getSudoCommand(),
                     command[index++]);
         }
 
         // Check for docker compose command as next command
         Assert.assertEquals("Docker compose command must be used as read from configuration.",
-                DockerComposeScriptEngineFactory.getDockerComposeCommand(),
+                DockerComposePropertyLoader.getInstance().getDockerComposeCommand(),
                 command[index++]);
         return index;
-    }
-
-    /**
-     * Counts how often one specific string is contained in a list of strings.
-     * @param array List of strings.
-     * @param containedString String to look for in the array.
-     * @return In how many strings, of the given array, the search string can be found.
-     */
-    private int containedInArray(List<String> array, String containedString) {
-        int result = 0;
-
-        for (String element : array) {
-            if (element.contains(containedString)) {
-                result += 1;
-            }
-        }
-        return result;
     }
 }

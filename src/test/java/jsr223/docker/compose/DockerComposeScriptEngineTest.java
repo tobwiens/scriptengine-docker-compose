@@ -47,6 +47,13 @@ public class DockerComposeScriptEngineTest {
         context.setReader(null);
         context.setErrorWriter(null);
 
+        new Expectations() {
+            {
+                // Return an empty HashMap to prevent NullPointerException
+                pb.environment(); result = new HashMap<>();
+            }
+        };
+
         DockerComposeScriptEngine dcse = new DockerComposeScriptEngine();
         dcse.eval(yamlFileExpected, context);
 
@@ -75,7 +82,7 @@ public class DockerComposeScriptEngineTest {
      * @throws IOException Should not be thrown.
      */
     @Test
-    public void testStringStringMapsAsVariables(@Mocked final FileWriter configFileWriter) throws ScriptException, IOException {
+    public void testStringStringMapsAsVariables(@Mocked final ProcessBuilder pb, @Mocked final FileWriter configFileWriter) throws ScriptException, IOException {
         ScriptContext context = new SimpleScriptContext();
         Map<String, String> variables = new HashMap<>();
         variables.put("name", "EchoUbuntu");
@@ -90,6 +97,7 @@ public class DockerComposeScriptEngineTest {
 
         new Expectations() {
             {
+                pb.environment(); result = new HashMap<>();
                 // Expect that script with substituted variables is written to disk
                 configFileWriter.write(yamlFileExpected);
             }
@@ -107,7 +115,7 @@ public class DockerComposeScriptEngineTest {
      * @throws IOException Should not be thrown
      */
     @Test
-    public void testVariableSubstitution(@Mocked final FileWriter configFileWriter) throws ScriptException, IOException {
+    public void testVariableSubstitution(@Mocked final FileWriter configFileWriter, @Mocked final ProcessBuilder pb ) throws ScriptException, IOException {
         ScriptContext context = new SimpleScriptContext();
         context.setAttribute("name", "EchoUbuntu", ScriptContext.ENGINE_SCOPE);
         context.setAttribute("container", "dockerfile/ubuntu", ScriptContext.ENGINE_SCOPE);
@@ -119,6 +127,9 @@ public class DockerComposeScriptEngineTest {
 
         new Expectations() {
             {
+                // Return an empty HashMap to prevent NullPointerException
+                pb.environment(); result = new HashMap<>();
+
                 // Expect that script with substituted variables is written to disk
                 configFileWriter.write(yamlFileExpected);
             }
@@ -146,7 +157,8 @@ public class DockerComposeScriptEngineTest {
                 new ProcessBuilder(DockerComposeCommandCreator.createDockerComposeExecutionCommand());
 
                 // Expect the environment to be accessed to fill it with env variables
-                pb.environment();
+                pb.environment(); result = new HashMap<String, String>();
+
                 // Expect to start the process
                 Process process = pb.start();
                 // Expect to get all streams and attach them

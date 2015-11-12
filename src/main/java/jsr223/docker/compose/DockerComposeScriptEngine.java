@@ -1,5 +1,6 @@
 package jsr223.docker.compose;
 
+import jsr223.docker.compose.utils.DockerComposePropertyLoader;
 import org.jetbrains.annotations.NotNull;
 import processbuilder.SingletonProcessBuilderFactory;
 import processbuilder.utils.ProcessBuilderUtilities;
@@ -9,19 +10,17 @@ import java.io.*;
 import java.nio.file.FileAlreadyExistsException;
 import java.util.Map;
 
-/**
- * Created on 4/21/2015.
- */
+
 public class DockerComposeScriptEngine extends AbstractScriptEngine {
 
-    private static final int SUCCESSFUL_EXECUTION = 0;
+    private static final String DOCKER_HOST_PROPERTY_NAME = "DOCKER_HOST";
 
-    // TODO: Implement
-    // TODO: Test
+
     @Override
     public Object eval(String script, ScriptContext context) throws ScriptException {
         // Create docker compose command
-        String[] dockerComposeCommand = DockerComposeCommandCreator.createDockerComposeExecutionCommand();
+        String[] dockerComposeCommand = DockerComposeCommandCreator
+                .createDockerComposeExecutionCommand();
 
         // Create a process builder
         ProcessBuilder processBuilder = SingletonProcessBuilderFactory
@@ -33,14 +32,18 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
         // Add string bindings as environment variables
         addBindingToStringMap(context.getBindings(ScriptContext.ENGINE_SCOPE), variablesMap);
 
+        // Add DOCKER_HOST variable to execution environment
+        variablesMap.put(DOCKER_HOST_PROPERTY_NAME,
+                DockerComposePropertyLoader.getInstance().getDockerHost());
+
         // Replace variables in configuration file
         script = replaceVariables(script, variablesMap);
 
         File composeYamlFile = new File(DockerComposeCommandCreator.getYamlFileName());
         try {
-            // Create configuration file
 
-            if ( composeYamlFile.createNewFile() == false ) {
+            // Create configuration file
+            if ( !composeYamlFile.createNewFile()) {
                 throw new FileAlreadyExistsException("Configuration file already exists: "
                         +DockerComposeCommandCreator.getYamlFileName());
             }
@@ -112,7 +115,9 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
         String result = script;
         // Replace all variables one by one
         for (Map.Entry<String, String> variable : variables.entrySet() ) {
-            result = result.replace("$"+variable.getKey(), variable.getValue());
+            if( variable.getValue() != null) {
+                result = result.replace("$" + variable.getKey(), variable.getValue());
+            }
         }
         return result;
     }

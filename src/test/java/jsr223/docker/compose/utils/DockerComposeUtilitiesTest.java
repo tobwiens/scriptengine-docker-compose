@@ -1,82 +1,94 @@
 package jsr223.docker.compose.utils;
 
-import org.junit.Assert;
+import mockit.Expectations;
+import mockit.MockUp;
+import mockit.Mocked;
+import org.junit.Ignore;
 import org.junit.Test;
 import processbuilder.ProcessBuilderFactory;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
 
-/**
- * Created on 4/21/2015.
- */
 public class DockerComposeUtilitiesTest {
-
-    public final static String[] expectedInput = {"docker-compose", "--version"};
-    public final static String firstPartOutput = "docker-compose";
-    public final static String secondPartOutput = "1.1.0";
-    public final static String output = firstPartOutput+" "+secondPartOutput;
-
-    private class VersionProcessBuilderFactory implements ProcessBuilderFactory {
+    String testString = "Test output";
 
 
-
+    private class MockedProcess extends Process {
 
         @Override
-        public ProcessBuilder getProcessBuilder(String... command) {
+        public OutputStream getOutputStream() {
+            return null;
+        }
 
-            int index = 0;
-            for (String element: expectedInput) {
-                Assert.assertTrue("Command must match "+element, element.equals(command[index++]));
+        public InputStream getInputStream() {
+           return new ByteArrayInputStream(testString.getBytes());
+        }
+
+        @Override
+        public InputStream getErrorStream() {
+            return null;
+        }
+
+        @Override
+        public int waitFor() throws InterruptedException {
+            Thread.sleep(1000);
+            return 0;
+        }
+
+        @Override
+        public int exitValue() {
+            return 0;
+        }
+
+        @Override
+        public void destroy() {
+
+        }
+
+    }
+
+
+    @Test
+    public void getDockerComposeVersionReturnOutputFromProcessStream(@Mocked final ProcessBuilderFactory factory, @Mocked final ProcessBuilder pb, @Mocked final Process process) throws IOException, InterruptedException {
+        new Expectations() {
+            {
+                pb.start(); result = new MockedProcess();
             }
-
-            return new ProcessBuilder();
-        }
+        };
+        assertThat(DockerComposeUtilities.getDockerComposeVersion(factory), is(testString));
     }
 
-    /**
-     * This test is checking whether the right command is given to the process builder.
-     * The ProcessBuilder class is final and cannot be mocked therefore the output will
-     * be tested differently and an Exception is excepted here.
-     */
     @Test
-    public void dockerComposeVersionTest(){
-        try {
-            System.out.println("The ArrayIndexOutOfBoundsException was expected to be thrown....");
-            DockerComposeUtilities.getDockerComposeVersion(expectedInput[0], new VersionProcessBuilderFactory());
-        } catch( Exception e) {
-            // Exceptions will be thrown for sure!!! The only part tested here is if the command
-            // constructed correctly and given to the ProcessBuilderFactory
-        }
+    public void addVersionParamaterToDockerComposeVersionCommand(@Mocked final ProcessBuilderFactory factory ) {
+        new Expectations() {
+            {
+                // Return an empty HashMap to prevent NullPointerException
+                factory.getProcessBuilder(anyString, withSubstring("--version"));
+            }
+        };
+        DockerComposeUtilities.getDockerComposeVersion(factory);
     }
 
-
-    /**
-     * This test mocks the output of the compose --version command and checks whether it is extracted
-     * correctly using the extractMethod and the regex.
-     * @throws NoSuchFieldException
-     * @throws IllegalAccessException
-     * @throws NoSuchMethodException
-     * @throws InvocationTargetException
-     */
     @Test
-    public void dockerComposeVersionRegexTest() throws NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-        // Check if the regex and index work when given the expected output
-        Field regexString = DockerComposeUtilities.class.getDeclaredField("versionOutputRegex");
-        Field positionInt = DockerComposeUtilities.class.getDeclaredField("versionOutputPosition");
+    public void startProcessBuilderAndWaitForRunningProcessToFinish(@Mocked final ProcessBuilderFactory factory, @Mocked final ProcessBuilder pb, @Mocked final Process process) throws IOException, InterruptedException {
+        new Expectations() {
+            {
+                // Start process builder
+                pb.start(); result = process;
 
-        // Make accessible
-        regexString.setAccessible(true);
-        positionInt.setAccessible(true);
-
-        // Get extraction method
-        Method extractWithRegex = DockerComposeUtilities.class.getDeclaredMethod("extractVersionFromOutput", String.class);
-        extractWithRegex.setAccessible(true);
-
-        // Call method which checks with regex
-        Assert.assertTrue("Version number must match: "+secondPartOutput,
-                extractWithRegex.invoke(new DockerComposeUtilitiesTest(),output).equals(secondPartOutput));
+                // Wait for running process to finish
+                process.waitFor();
+            }
+        };
+        DockerComposeUtilities.getDockerComposeVersion(factory);
     }
+
 }
