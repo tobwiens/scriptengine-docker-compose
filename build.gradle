@@ -26,6 +26,6 @@ dependencies {
 jar {
     manifest {
         attributes(
-                "Class-Path": "../../config/")
+                "Class-Path": "../../") // ProActive root directory (script-engine sits in dist/lib)
     }
 }

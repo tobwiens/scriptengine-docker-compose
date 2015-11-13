@@ -1,6 +1,7 @@
 package jsr223.docker.compose.utils;
 
 import jsr223.docker.compose.DockerComposeCommandCreator;
+import lombok.extern.log4j.Log4j;
 import org.jetbrains.annotations.NotNull;
 import processbuilder.ProcessBuilderFactory;
 import processbuilder.utils.ProcessBuilderUtilities;
@@ -9,9 +10,8 @@ import java.io.IOException;
 import java.io.StringWriter;
 
 
-
+@Log4j
 public class DockerComposeUtilities {
-    // TODO: Add logger
     /**
      * Retrieves the docker compose version.
      * @return The currently installed version return by the docker compose command or an empty string
@@ -38,8 +38,8 @@ public class DockerComposeUtilities {
             // Extract output
             result = commandOutput.toString();
         } catch (IOException|InterruptedException|IndexOutOfBoundsException  e){
-            System.err.println("Failed to retrieve docker compose version.");
-            e.printStackTrace();
+            log.warn("Failed to retrieve docker compose version.");
+            log.debug("Failed to retrieve docker compose version.", e);
         }
         return result;
     }
