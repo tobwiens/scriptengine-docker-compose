@@ -57,7 +57,7 @@ public class DockerComposePropertyLoader {
 
     protected Properties properties;
 
-    protected String configurationFile = "docker-compose.properties";
+    protected String configurationFile = "config/scriptengines/docker-compose.properties";
 
     private DockerComposePropertyLoader()  {
         properties = new Properties();

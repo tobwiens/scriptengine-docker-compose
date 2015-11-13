@@ -21,6 +21,11 @@ public class DockerComposeScriptEngineFactory implements ScriptEngineFactory {
     private static final Map<String, Object> parameters = new HashMap<>();
 
     public DockerComposeScriptEngineFactory() {
+        // This is the entrypoint of the script engine
+        // configure the logger here, quick and dirty
+        org.apache.log4j.PropertyConfigurator.configure(getClass()
+        .getClassLoader().getResourceAsStream("config/log/scriptengines.properties"));
+
         parameters.put(ScriptEngine.NAME, this.NAME);
         parameters.put(ScriptEngine.ENGINE_VERSION, this.ENGINE_VERSION);
         parameters.put(ScriptEngine.LANGUAGE, this.LANGUAGE);
