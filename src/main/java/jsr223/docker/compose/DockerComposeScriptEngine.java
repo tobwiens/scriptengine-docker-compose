@@ -1,6 +1,7 @@
 package jsr223.docker.compose;
 
 import jsr223.docker.compose.utils.DockerComposePropertyLoader;
+import lombok.extern.log4j.Log4j;
 import org.jetbrains.annotations.NotNull;
 import processbuilder.SingletonProcessBuilderFactory;
 import processbuilder.utils.ProcessBuilderUtilities;
@@ -10,10 +11,31 @@ import java.io.*;
 import java.nio.file.FileAlreadyExistsException;
 import java.util.Map;
 
-
+@Log4j
 public class DockerComposeScriptEngine extends AbstractScriptEngine {
 
     private static final String DOCKER_HOST_PROPERTY_NAME = "DOCKER_HOST";
+    private static final String log4jConfigurationFile = "config/log/scriptengines.properties";
+
+
+    public DockerComposeScriptEngine() {
+        // This is the entrypoint of the script engine
+        // configure the logger here, quick and dirty
+        // Catch all exceptions to not sacrifice functionality for logging.
+        try {
+            org.apache.log4j.PropertyConfigurator.configure(getClass()
+                    .getClassLoader().getResourceAsStream(log4jConfigurationFile));
+        } catch (NullPointerException e) {
+            System.err.println("Log4j configuration file not found: "+ log4jConfigurationFile +
+                    ". Any output for the Docker Compose script engine is disabled.");
+        } catch (Exception e) {
+            System.err.println("Log4j initialization failed: "+ log4jConfigurationFile +
+                    ". Docker Compose script engine is functional but logging is disabled."+
+                    "Stacktrace is: ");
+            e.printStackTrace();
+        }
+
+    }
 
 
     @Override
@@ -153,10 +175,9 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
     public Bindings createBindings() {
         return new SimpleBindings();
     }
-    // TODO: Implement
-    // TODO: Test
+
     @Override
     public ScriptEngineFactory getFactory() {
-        return null;
+        return new DockerComposeScriptEngineFactory();
     }
 }

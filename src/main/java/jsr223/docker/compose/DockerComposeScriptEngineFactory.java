@@ -20,28 +20,12 @@ public class DockerComposeScriptEngineFactory implements ScriptEngineFactory {
 
     private static final Map<String, Object> parameters = new HashMap<>();
 
-    private static final String log4jConfigurationFile = "config/log/scriptengines.properties";
-
     public DockerComposeScriptEngineFactory() {
-        // This is the entrypoint of the script engine
-        // configure the logger here, quick and dirty
-        try {
-            org.apache.log4j.PropertyConfigurator.configure(getClass()
-            .getClassLoader().getResourceAsStream(log4jConfigurationFile));
-        } catch (NullPointerException e) {
-            System.err.println("Log4j configuration file not found: "+ log4jConfigurationFile +
-            ". Any output for the docker-compose script engine is disabled.");
-        }
-
 
         parameters.put(ScriptEngine.NAME, this.NAME);
         parameters.put(ScriptEngine.ENGINE_VERSION, this.ENGINE_VERSION);
         parameters.put(ScriptEngine.LANGUAGE, this.LANGUAGE);
         parameters.put(ScriptEngine.ENGINE, this.ENGINE);
-        parameters.put(ScriptEngine.LANGUAGE_VERSION,
-                DockerComposeUtilities.
-                getDockerComposeVersion(SingletonProcessBuilderFactory.getInstance()));
-
     }
 
 
@@ -77,7 +61,8 @@ public class DockerComposeScriptEngineFactory implements ScriptEngineFactory {
 
     @Override
     public String getLanguageVersion() {
-        return (String) parameters.get(ScriptEngine.LANGUAGE_VERSION);
+        return DockerComposeUtilities.
+                getDockerComposeVersion(SingletonProcessBuilderFactory.getInstance());
     }
 
     @Override

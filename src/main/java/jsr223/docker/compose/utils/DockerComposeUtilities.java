@@ -38,7 +38,6 @@ public class DockerComposeUtilities {
             // Extract output
             result = commandOutput.toString();
         } catch (IOException|InterruptedException|IndexOutOfBoundsException  e){
-            log.warn("Failed to retrieve docker compose version.");
             log.debug("Failed to retrieve docker compose version.", e);
         }
         return result;
