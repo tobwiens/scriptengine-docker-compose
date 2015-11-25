@@ -102,22 +102,21 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
             return returnValue;
 
         } catch (IOException e) {
-            System.err.println("Filed to execute docker-compose.");
-            e.printStackTrace();
+            log.warn("Failed to execute Docker Compose.",e);
         } catch (InterruptedException e) {
             // Thread was interrupted somehow, now we need to make sure that
             // the container are stopped even though several interrupts could
             // occur. Therefore start a thread which will remove all container.
             // TODO: Start thread which will stop and remove container in the background
+            log.warn("Execution was terminated and container might need to be terminated manually.");
         } finally {
             // Delete configuration file
             composeYamlFile.delete();
         }
 
-
         return null;
     }
-    // TODO: Implement
+
     // TODO: Test
     @Override
     public Object eval(Reader reader, ScriptContext context) throws ScriptException {
@@ -127,7 +126,8 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
         try {
             ProcessBuilderUtilities.pipe(reader, stringWriter);
         } catch (IOException e) {
-            e.printStackTrace();
+            log.warn("Filed to convert Reader into StringWriter. Not possible to execute Docker Compose script.");
+            log.debug("Filed to convert Reader into StringWriter. Not possible to execute Docker Compose script.", e);
         }
 
         return eval(stringWriter.toString(), context);
@@ -146,26 +146,38 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
 
     /**
      * Adds all bindings which are from type @String to the environment map. All other bindings are printed
-     * with toString() to std.err with an error message.
+     * with toString() to log file.
      * @param bindings Bindings which will be read and added to environment.
-     * @param environment Map<String,String> which will get all Entry<String,String> from he @Bindings
+     * @param environment Map<String,String> which will get all Entry<String,String> from the @Bindings
      */
     private void addBindingToStringMap(@NotNull Bindings bindings, @NotNull Map<String, String> environment) {
         for(Map.Entry<String, Object> entry: bindings.entrySet()) {
             if (entry.getValue() instanceof String) {
-                environment.put(entry.getKey(),(String) entry.getValue());
-                System.out.println("Added binding: "+entry.getKey()+":"+entry.getValue().toString());
+                addEntryToEnvironmentWhichIsAPureString(environment, entry);
             } else { // Go through maps and add String String values to the environment map.
-                if (entry.getValue() instanceof Map<?, ?>)
-                    for (Map.Entry<?, ?> mapEntry :  ((Map<?,?>) entry.getValue()).entrySet()) {
-                        if (mapEntry.getValue() instanceof String && mapEntry.getKey() instanceof String) {
-                            environment.put((String) mapEntry.getKey(), (String) mapEntry.getValue());
-                            System.out.println("Added binding: "+mapEntry.getKey()+":"+mapEntry.getValue().toString());
-                        }
-                    }
-                else {
-                    System.err.println("Ignored binding: " + entry.getKey() + "(" + entry.getKey().getClass().getName() + "):" + entry.getValue().toString() + "(" + entry.getValue().getClass().getName() + ")");
-                }
+                AddEntryToEnvironmentOtherThanPureStrings(environment, entry);
+            }
+        }
+    }
+
+    private void addEntryToEnvironmentWhichIsAPureString(@NotNull Map<String, String> environment, Map.Entry<String, Object> entry) {
+        environment.put(entry.getKey(),(String) entry.getValue());
+        log.debug("Added binding: "+entry.getKey()+":"+entry.getValue().toString());
+    }
+
+    private void AddEntryToEnvironmentOtherThanPureStrings(@NotNull Map<String, String> environment, Map.Entry<String, Object> entry) {
+        if (entry.getValue() instanceof Map<?, ?>)
+            addEntryToEnvironmentWhichIsAMapContainingStrings(environment, entry);
+        else {
+            log.warn("Ignored binding: " + entry.getKey() + "(" + entry.getKey().getClass().getName() + "):" + entry.getValue().toString() + "(" + entry.getValue().getClass().getName() + ")");
+        }
+    }
+
+    private void addEntryToEnvironmentWhichIsAMapContainingStrings(@NotNull Map<String, String> environment, Map.Entry<String, Object> entry) {
+        for (Map.Entry<?, ?> mapEntry :  ((Map<?,?>) entry.getValue()).entrySet()) {
+            if (mapEntry.getValue() instanceof String && mapEntry.getKey() instanceof String) {
+                environment.put((String) mapEntry.getKey(), (String) mapEntry.getValue());
+                log.debug("Added binding: "+mapEntry.getKey()+":"+mapEntry.getValue().toString());
             }
         }
     }

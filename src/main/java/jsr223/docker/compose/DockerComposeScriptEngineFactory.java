@@ -22,10 +22,10 @@ public class DockerComposeScriptEngineFactory implements ScriptEngineFactory {
 
     public DockerComposeScriptEngineFactory() {
 
-        parameters.put(ScriptEngine.NAME, this.NAME);
-        parameters.put(ScriptEngine.ENGINE_VERSION, this.ENGINE_VERSION);
-        parameters.put(ScriptEngine.LANGUAGE, this.LANGUAGE);
-        parameters.put(ScriptEngine.ENGINE, this.ENGINE);
+        parameters.put(ScriptEngine.NAME, NAME);
+        parameters.put(ScriptEngine.ENGINE_VERSION, ENGINE_VERSION);
+        parameters.put(ScriptEngine.LANGUAGE, LANGUAGE);
+        parameters.put(ScriptEngine.ENGINE, ENGINE);
     }
 
 
