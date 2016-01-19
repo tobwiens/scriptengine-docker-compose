@@ -16,6 +16,7 @@ import javax.script.ScriptEngineFactory;
 import javax.script.ScriptException;
 import javax.script.SimpleBindings;
 
+import jsr223.docker.compose.script.environment.EnvironmentVariablesAdder;
 import jsr223.docker.compose.utils.DockerComposePropertyLoader;
 import lombok.extern.log4j.Log4j;
 import org.jetbrains.annotations.NotNull;
@@ -24,6 +25,8 @@ import processbuilder.utils.ProcessBuilderUtilities;
 
 @Log4j
 public class DockerComposeScriptEngine extends AbstractScriptEngine {
+
+    private static final EnvironmentVariablesAdder environmentVariablesAdder = new EnvironmentVariablesAdder();
 
     private static final String DOCKER_HOST_PROPERTY_NAME = "DOCKER_HOST";
     private static final String log4jConfigurationFile = "config/log/scriptengines.properties";
@@ -170,7 +173,7 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
             if (entry.getValue() instanceof String) {
                 addEntryToEnvironmentWhichIsAPureString(environment, entry);
             } else { // Go through maps and add String String values to the environment map.
-                AddEntryToEnvironmentOtherThanPureStrings(environment, entry);
+                environmentVariablesAdder.AddEntryToEnvironmentOtherThanPureStrings(environment, entry);
             }
         }
     }
@@ -179,43 +182,6 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
             Map.Entry<String, Object> entry) {
         environment.put(entry.getKey(), (String) entry.getValue());
         log.debug("Added binding: " + entry.getKey() + ":" + entry.getValue().toString());
-    }
-
-    private void AddEntryToEnvironmentOtherThanPureStrings(@NotNull Map<String, String> environment,
-            Map.Entry<String, Object> entry) {
-        log.warn("Got Binding binding: " + entry.getKey() + entry.getValue());
-        if (containsKeyAndValue(entry) && valueIsMapType(entry)) {
-            addEntryToEnvironmentWhichIsAMapContainingStrings(environment, entry);
-        } else {
-            log.warn(
-                    "Ignored binding: " + entry.getKey() + "(" + getClassName(
-                            entry.getKey()) + "):" + entry.getValue() + "(" + getClassName(
-                            entry.getValue()) + ")");
-
-        }
-    }
-
-    private String getClassName(Object object) {
-        return object != null ? object.getClass().getName() : null;
-    }
-
-
-    private boolean valueIsMapType(Map.Entry<String, Object> entry) {
-        return entry.getValue() instanceof Map<?, ?>;
-    }
-
-    private boolean containsKeyAndValue(Map.Entry<String, Object> entry) {
-        return entry.getKey() != null && entry.getValue() != null;
-    }
-
-    private void addEntryToEnvironmentWhichIsAMapContainingStrings(@NotNull Map<String, String> environment,
-            Map.Entry<String, Object> entry) {
-        for (Map.Entry<?, ?> mapEntry : ((Map<?, ?>) entry.getValue()).entrySet()) {
-            if (mapEntry.getValue() instanceof String && mapEntry.getKey() instanceof String) {
-                environment.put((String) mapEntry.getKey(), (String) mapEntry.getValue());
-                log.debug("Added binding: " + mapEntry.getKey() + ":" + mapEntry.getValue().toString());
-            }
-        }
     }
 
 
