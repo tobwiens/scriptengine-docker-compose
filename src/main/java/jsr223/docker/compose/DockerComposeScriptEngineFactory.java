@@ -15,7 +15,7 @@ public class DockerComposeScriptEngineFactory implements ScriptEngineFactory {
     // Script engine parameters
     private static final String NAME = "docker-compose";
     private static final String ENGINE = "docker-compose";
-    private static final String ENGINE_VERSION = "0.0.1";
+    private static final String ENGINE_VERSION = "0.0.2";
     private static final String LANGUAGE = "yaml";
 
     private static final Map<String, Object> parameters = new HashMap<>();
