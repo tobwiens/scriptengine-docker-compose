@@ -95,7 +95,7 @@ sonarqube {
     }
 }
 
-// Upload the archoives to the nexus repository. For execution, that needs to have
+// Upload the archives to the nexus repository. For execution, that needs to have
 // the username and password set in the command line by -DnexusUsername=[username]
 // and -DnexusPassword=[password]
 uploadArchives {
