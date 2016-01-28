@@ -32,21 +32,28 @@
  *
  *  * $$ACTIVEEON_INITIAL_DEV$$
  */
-package jsr223.docker.compose.script.environment;
+package jsr223.docker.compose.bindings;
 
 import java.util.Map;
 
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j;
-import org.jetbrains.annotations.NotNull;
 
 @Log4j
-@NoArgsConstructor
-public class EnvironmentVariablesAdder {
+public class MapBindingsAdder {
 
-    public void AddEntryToEnvironmentOtherThanPureStrings(@NotNull Map<String, String> environment,
+    /**
+     *
+     * @param environment Add strings to environment. Method returns immediately if null.
+     * @param entry Entry containing an object, the object type is checked and handled individually. Method
+     *              returns immediately if null.
+     */
+    public void addEntryToEnvironmentOtherThanPureStrings(Map<String, String> environment,
             Map.Entry<String, Object> entry) {
-        log.warn("Got Binding binding: " + entry.getKey() + entry.getValue());
+        if(environment == null || entry == null) {
+            return;
+        }
+
         if (containsKeyAndValue(entry) && valueIsMapType(entry)) {
             addEntryToEnvironmentWhichIsAMapContainingStrings(environment, entry);
         } else {
@@ -62,7 +69,6 @@ public class EnvironmentVariablesAdder {
         return object != null ? object.getClass().getName() : null;
     }
 
-
     private boolean valueIsMapType(Map.Entry<String, Object> entry) {
         return entry.getValue() instanceof Map<?, ?>;
     }
@@ -71,7 +77,7 @@ public class EnvironmentVariablesAdder {
         return entry.getKey() != null && entry.getValue() != null;
     }
 
-    private void addEntryToEnvironmentWhichIsAMapContainingStrings(@NotNull Map<String, String> environment,
+    private void addEntryToEnvironmentWhichIsAMapContainingStrings(Map<String, String> environment,
             Map.Entry<String, Object> entry) {
         for (Map.Entry<?, ?> mapEntry : ((Map<?, ?>) entry.getValue()).entrySet()) {
             if (mapEntry.getValue() instanceof String && mapEntry.getKey() instanceof String) {
