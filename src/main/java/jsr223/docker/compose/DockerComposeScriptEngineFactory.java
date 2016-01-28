@@ -1,16 +1,20 @@
 package jsr223.docker.compose;
 
-import jsr223.docker.compose.utils.DockerComposeUtilities;
-import processbuilder.SingletonProcessBuilderFactory;
-
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineFactory;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineFactory;
+
+import jsr223.docker.compose.utils.DockerComposeVersionGetter;
+import processbuilder.SingletonProcessBuilderFactory;
+
 public class DockerComposeScriptEngineFactory implements ScriptEngineFactory {
+
+    private DockerComposeVersionGetter dockerComposeVersionGetter;
 
     // Script engine parameters
     private static final String NAME = "docker-compose";
@@ -18,10 +22,14 @@ public class DockerComposeScriptEngineFactory implements ScriptEngineFactory {
     private static final String ENGINE_VERSION = "0.0.2";
     private static final String LANGUAGE = "yaml";
 
-    private static final Map<String, Object> parameters = new HashMap<>();
+    private final Map<String, Object> parameters = new HashMap<>();
 
-    public DockerComposeScriptEngineFactory() {
+    public DockerComposeScriptEngineFactory(DockerComposeVersionGetter dockerComposeVersionGetter) {
+        if(dockerComposeVersionGetter == null){
+            throw new NullPointerException("The dockerComposeVersionGetter cannot be null");
+        }
 
+        this.dockerComposeVersionGetter = dockerComposeVersionGetter;
         parameters.put(ScriptEngine.NAME, NAME);
         parameters.put(ScriptEngine.ENGINE_VERSION, ENGINE_VERSION);
         parameters.put(ScriptEngine.LANGUAGE, LANGUAGE);
@@ -46,7 +54,7 @@ public class DockerComposeScriptEngineFactory implements ScriptEngineFactory {
 
     @Override
     public List<String> getMimeTypes() {
-        return Arrays.asList("text/yaml");
+        return Collections.singletonList("text/yaml");
     }
 
     @Override
@@ -61,7 +69,7 @@ public class DockerComposeScriptEngineFactory implements ScriptEngineFactory {
 
     @Override
     public String getLanguageVersion() {
-        return DockerComposeUtilities.
+        return dockerComposeVersionGetter.
                 getDockerComposeVersion(SingletonProcessBuilderFactory.getInstance());
     }
 

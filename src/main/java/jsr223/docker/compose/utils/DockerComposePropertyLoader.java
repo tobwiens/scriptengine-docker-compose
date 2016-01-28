@@ -34,6 +34,8 @@
  */
 package jsr223.docker.compose.utils;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j;
 
 import java.io.IOException;
@@ -89,6 +91,7 @@ public class DockerComposePropertyLoader {
       DockerComposePropertyLoaderHolder is loaded on the first execution of DockerComposePropertyLoader.getInstance()
       or the first access to DockerComposePropertyLoaderHolder.INSTANCE, not before.
     **/
+     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     private static class DockerComposePropertyLoaderHolder {
         private static final DockerComposePropertyLoader INSTANCE = new DockerComposePropertyLoader();
     }

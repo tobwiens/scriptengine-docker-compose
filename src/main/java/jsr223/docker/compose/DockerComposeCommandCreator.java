@@ -1,9 +1,9 @@
 package jsr223.docker.compose;
 
-import jsr223.docker.compose.utils.DockerComposePropertyLoader;
-import org.jetbrains.annotations.NotNull;
+import java.util.ArrayList;
+import java.util.List;
 
-import java.util.*;
+import jsr223.docker.compose.utils.DockerComposePropertyLoader;
 
 public class DockerComposeCommandCreator {
 
@@ -19,9 +19,9 @@ public class DockerComposeCommandCreator {
 
     /**
      * Construct the docker compose stop command.
+     *
      * @return String array representing a command.
      */
-    @NotNull
     public static String[] createDockerComposeStopCommand() {
         List<String> command = new ArrayList<>();
         addSudoAndDockerComposeCommand(command);
@@ -32,9 +32,9 @@ public class DockerComposeCommandCreator {
 
     /**
      * Construct docker compose remove command.
+     *
      * @return String array representing a command.
      */
-    @NotNull
     public static String[] createDockerComposeRemoveCommand() {
         List<String> command = new ArrayList<>();
         addSudoAndDockerComposeCommand(command);
@@ -48,10 +48,10 @@ public class DockerComposeCommandCreator {
 
     /**
      * This method creates a bash command which starts docker-compose with a given yaml file.
+     *
      * @return A String array which contains the command as a separate @String and each
      * argument as a separate String.
      */
-    @NotNull
     public static String[] createDockerComposeExecutionCommand() {
         List<String> command = new ArrayList<>();
         addSudoAndDockerComposeCommand(command);
@@ -71,9 +71,10 @@ public class DockerComposeCommandCreator {
     /**
      * Adds sudo and docker compose command to the given list. Sudo is only added when
      * it is configured to do that.
+     *
      * @param command List which gets the command(s) added.
      */
-    private static void addSudoAndDockerComposeCommand(@NotNull List<String> command) {
+    private static void addSudoAndDockerComposeCommand(List<String> command) {
         // Add sudo if necessary
         if (DockerComposePropertyLoader.getInstance().isUseSudo()) {
             command.add(DockerComposePropertyLoader.getInstance().getSudoCommand());
