@@ -1,39 +1,40 @@
 package jsr223.docker.compose;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import jsr223.docker.compose.utils.DockerComposeVersionGetter;
+import processbuilder.SingletonProcessBuilderFactory;
+import processbuilder.utils.ProcessBuilderUtilities;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
-
-import jsr223.docker.compose.utils.DockerComposeVersionGetter;
-import processbuilder.SingletonProcessBuilderFactory;
+import java.util.*;
 
 public class DockerComposeScriptEngineFactory implements ScriptEngineFactory {
 
-    private DockerComposeVersionGetter dockerComposeVersionGetter;
-
     // Script engine parameters
     private static final String NAME = "docker-compose";
-    private static final String ENGINE = "docker-compose";
-    private static final String ENGINE_VERSION = "0.0.2";
+    private static final String ENGINE = NAME;
+    private static final String ENGINE_VERSION = "0.2.0";
     private static final String LANGUAGE = "yaml";
-
     private final Map<String, Object> parameters = new HashMap<>();
+    private ProcessBuilderUtilities processBuilderUtilities = new ProcessBuilderUtilities();
+    private DockerComposeVersionGetter dockerComposeVersionGetter = new DockerComposeVersionGetter(processBuilderUtilities);
 
-    public DockerComposeScriptEngineFactory(DockerComposeVersionGetter dockerComposeVersionGetter) {
-        if(dockerComposeVersionGetter == null){
-            throw new NullPointerException("The dockerComposeVersionGetter cannot be null");
-        }
-
-        this.dockerComposeVersionGetter = dockerComposeVersionGetter;
+    public DockerComposeScriptEngineFactory() {
         parameters.put(ScriptEngine.NAME, NAME);
         parameters.put(ScriptEngine.ENGINE_VERSION, ENGINE_VERSION);
         parameters.put(ScriptEngine.LANGUAGE, LANGUAGE);
         parameters.put(ScriptEngine.ENGINE, ENGINE);
+    }
+
+    public DockerComposeScriptEngineFactory(ProcessBuilderUtilities processBuilderUtilities,
+                                            DockerComposeVersionGetter dockerComposeVersionGetter) {
+        this();
+        if (processBuilderUtilities == null || dockerComposeVersionGetter == null) {
+            throw new NullPointerException("processBuilderUtilities and dockerComposeVersionGetter must not be null");
+        }
+        this.processBuilderUtilities = processBuilderUtilities;
+        this.dockerComposeVersionGetter = dockerComposeVersionGetter;
+
     }
 
 
@@ -59,7 +60,7 @@ public class DockerComposeScriptEngineFactory implements ScriptEngineFactory {
 
     @Override
     public List<String> getNames() {
-        return Arrays.asList("docker-compose", "fig");
+        return Arrays.asList(ENGINE, "fig");
     }
 
     @Override

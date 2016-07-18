@@ -7,8 +7,10 @@ import java.io.Reader;
 import java.io.Writer;
 
 import lombok.NoArgsConstructor;
+import lombok.extern.log4j.Log4j;
 
 @NoArgsConstructor
+@Log4j
 public class ProcessBuilderUtilities {
 
     /**
@@ -18,13 +20,13 @@ public class ProcessBuilderUtilities {
      * @param source       Data source.
      * @param attachedSink Data sink.
      */
-    public void attachToInputStream(final Reader source, final Writer attachedSink) {
+    private void attachToInputStream(final Reader source, final Writer attachedSink) {
         new Thread() {
             public void run() {
                 try {
                     pipe(source, attachedSink);
                 } catch (IOException e) {
-                    //Done
+                    log.error("Input stream pipe broke: "+e);
                 }
             }
         }.start();

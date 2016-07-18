@@ -14,11 +14,11 @@ import static org.junit.Assert.assertThat;
 
 public class VariablesReplacerTest {
 
-    final static String yamlFileWithVariables = "$name:\n"
+    private final static String yamlFileWithVariables = "$name:\n"
             + "    image: $container\n"
             + "    command: echo \"$greetings\"";
 
-    final static String yamlFileExpected = "EchoUbuntu:\n"
+    private final static String yamlFileExpected = "EchoUbuntu:\n"
             + "    image: dockerfile/ubuntu\n"
             + "    command: echo \"Hello World\"";
 

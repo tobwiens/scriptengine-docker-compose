@@ -1,27 +1,20 @@
 package jsr223.docker.compose;
 
+import jsr223.docker.compose.bindings.MapBindingsAdder;
+import jsr223.docker.compose.bindings.StringBindingsAdder;
+import jsr223.docker.compose.file.write.ConfigurationFileWriter;
+import jsr223.docker.compose.utils.DockerComposePropertyLoader;
+import jsr223.docker.compose.yaml.VariablesReplacer;
+import lombok.extern.log4j.Log4j;
+import processbuilder.SingletonProcessBuilderFactory;
+import processbuilder.utils.ProcessBuilderUtilities;
+
+import javax.script.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.util.Map;
-
-import javax.script.AbstractScriptEngine;
-import javax.script.Bindings;
-import javax.script.ScriptContext;
-import javax.script.ScriptEngineFactory;
-import javax.script.ScriptException;
-import javax.script.SimpleBindings;
-
-import jsr223.docker.compose.bindings.MapBindingsAdder;
-import jsr223.docker.compose.bindings.StringBindingsAdder;
-import jsr223.docker.compose.file.write.ConfigurationFileWriter;
-import jsr223.docker.compose.utils.DockerComposePropertyLoader;
-import jsr223.docker.compose.utils.DockerComposeVersionGetter;
-import jsr223.docker.compose.yaml.VariablesReplacer;
-import lombok.extern.log4j.Log4j;
-import processbuilder.SingletonProcessBuilderFactory;
-import processbuilder.utils.ProcessBuilderUtilities;
 
 @Log4j
 public class DockerComposeScriptEngine extends AbstractScriptEngine {
@@ -29,11 +22,12 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
     private static final String DOCKER_HOST_PROPERTY_NAME = "DOCKER_HOST";
     private static final String LOG4J_CONFIGURATION_FILE = "config/log/scriptengines.properties";
 
-    private static ProcessBuilderUtilities processBuilderUtilities = new ProcessBuilderUtilities();
-    private static VariablesReplacer variablesReplacer = new VariablesReplacer();
-    private static ConfigurationFileWriter configurationFileWriter = new ConfigurationFileWriter();
-    private static StringBindingsAdder stringBindingsAdder = new StringBindingsAdder(
+    private ProcessBuilderUtilities processBuilderUtilities = new ProcessBuilderUtilities();
+    private VariablesReplacer variablesReplacer = new VariablesReplacer();
+    private ConfigurationFileWriter configurationFileWriter = new ConfigurationFileWriter();
+    private StringBindingsAdder stringBindingsAdder = new StringBindingsAdder(
             new MapBindingsAdder());
+    private DockerComposeCommandCreator dockerComposeCommandCreator = new DockerComposeCommandCreator();
 
 
     public DockerComposeScriptEngine() {
@@ -43,14 +37,14 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
         try {
             org.apache.log4j.PropertyConfigurator.configure(getClass()
                     .getClassLoader().getResourceAsStream(LOG4J_CONFIGURATION_FILE));
-        } catch (NullPointerException e) {
-            System.err.println("Log4j configuration file not found: " + LOG4J_CONFIGURATION_FILE +
-                    ". Any output for the Docker Compose script engine is disabled.");
-        } catch (Exception e) {
-            System.err.println("Log4j initialization failed: " + LOG4J_CONFIGURATION_FILE +
-                    ". Docker Compose script engine is functional but logging is disabled." +
-                    "Stacktrace is: ");
-            e.printStackTrace();
+        } catch (NullPointerException e) { //NOSONAR
+            System.err.println("Log4j configuration file not found: " + LOG4J_CONFIGURATION_FILE + //NOSONAR
+                    ". Any output for the Docker Compose script engine is disabled."); //NOSONAR
+        } catch (Exception e) { //NOSONAR
+            System.err.println("Log4j initialization failed: " + LOG4J_CONFIGURATION_FILE + //NOSONAR
+                    ". Docker Compose script engine is functional but logging is disabled." + //NOSONAR
+                    "Stacktrace is: "); //NOSONAR
+            e.printStackTrace(); //NOSONAR
         }
 
     }
@@ -59,7 +53,7 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
     @Override
     public Object eval(String script, ScriptContext context) throws ScriptException {
         // Create docker compose command
-        String[] dockerComposeCommand = DockerComposeCommandCreator
+        String[] dockerComposeCommand = dockerComposeCommandCreator
                 .createDockerComposeExecutionCommand();
 
         // Create a process builder
@@ -84,7 +78,7 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
 
         try {
             composeYamlFile = configurationFileWriter.forceFileToDisk(scriptReplacedVariables,
-                    DockerComposeCommandCreator.getYamlFileName());
+                    dockerComposeCommandCreator.YAML_FILE_NAME);
 
             // Start process
             Process process = processBuilder.start();
@@ -96,39 +90,35 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
                     context.getReader());
 
             // Wait for process to exit
-            int returnValue = process.waitFor();
-
-            // Stop containers
-            SingletonProcessBuilderFactory
-                    .getInstance()
-                    .getProcessBuilder(DockerComposeCommandCreator.createDockerComposeStopCommand())
-                    .start().waitFor();
-
-            // Remove containers
-            SingletonProcessBuilderFactory
-                    .getInstance()
-                    .getProcessBuilder(DockerComposeCommandCreator.createDockerComposeRemoveCommand())
-                    .start().waitFor();
-
-            return returnValue;
-
+            return process.waitFor();
         } catch (IOException e) {
             log.warn("Failed to execute Docker Compose.", e);
         } catch (InterruptedException e) {
-            // Thread was interrupted somehow, now we need to make sure that
-            // the container are stopped even though several interrupts could
-            // occur. Therefore start a thread which will remove all container.
-            log.warn("Execution was terminated and container might need to be terminated manually.");
+            log.info("Container execution interrupted. " + e.getMessage());
         } finally {
+            try {
+                // Reset thread's interrupt flag
+                Thread.interrupted();
+                stopAndRemoveContainers().waitFor();
+            } catch (Exception e) {
+                log.error("Container removal was interrupted: " + e.getMessage());
+            }
             // Delete configuration file
             if (composeYamlFile != null) {
                 boolean deleted = composeYamlFile.delete();
                 if (!deleted) {
-                    log.warn("File: "+composeYamlFile.getAbsolutePath()+" was not deleted.");
+                    log.warn("File: " + composeYamlFile.getAbsolutePath() + " was not deleted.");
                 }
             }
         }
         return null;
+    }
+
+    private Process stopAndRemoveContainers() throws IOException {
+        return SingletonProcessBuilderFactory
+                .getInstance()
+                .getProcessBuilder(dockerComposeCommandCreator.createDockerComposeDownCommand())
+                .start();
     }
 
 
@@ -159,6 +149,6 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
 
     @Override
     public ScriptEngineFactory getFactory() {
-        return new DockerComposeScriptEngineFactory(new DockerComposeVersionGetter(processBuilderUtilities));
+        return new DockerComposeScriptEngineFactory();
     }
 }

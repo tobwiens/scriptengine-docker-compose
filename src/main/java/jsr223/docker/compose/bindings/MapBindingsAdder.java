@@ -34,23 +34,21 @@
  */
 package jsr223.docker.compose.bindings;
 
-import java.util.Map;
-
-import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j;
+
+import java.util.Map;
 
 @Log4j
 public class MapBindingsAdder {
 
     /**
-     *
      * @param environment Add strings to environment. Method returns immediately if null.
-     * @param entry Entry containing an object, the object type is checked and handled individually. Method
-     *              returns immediately if null.
+     * @param entry       Entry containing an object, the object type is checked and handled individually. Method
+     *                    returns immediately if null.
      */
     public void addEntryToEnvironmentOtherThanPureStrings(Map<String, String> environment,
-            Map.Entry<String, Object> entry) {
-        if(environment == null || entry == null) {
+                                                          Map.Entry<String, Object> entry) {
+        if (environment == null || entry == null) {
             return;
         }
 
@@ -78,7 +76,7 @@ public class MapBindingsAdder {
     }
 
     private void addEntryToEnvironmentWhichIsAMapContainingStrings(Map<String, String> environment,
-            Map.Entry<String, Object> entry) {
+                                                                   Map.Entry<String, Object> entry) {
         for (Map.Entry<?, ?> mapEntry : ((Map<?, ?>) entry.getValue()).entrySet()) {
             if (mapEntry.getValue() instanceof String && mapEntry.getKey() instanceof String) {
                 environment.put((String) mapEntry.getKey(), (String) mapEntry.getValue());
