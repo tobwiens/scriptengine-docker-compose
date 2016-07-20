@@ -4,6 +4,7 @@ import jsr223.docker.compose.bindings.MapBindingsAdder;
 import jsr223.docker.compose.bindings.StringBindingsAdder;
 import jsr223.docker.compose.file.write.ConfigurationFileWriter;
 import jsr223.docker.compose.utils.DockerComposePropertyLoader;
+import jsr223.docker.compose.utils.Log4jConfigurationLoader;
 import jsr223.docker.compose.yaml.VariablesReplacer;
 import lombok.extern.log4j.Log4j;
 import processbuilder.SingletonProcessBuilderFactory;
@@ -20,7 +21,7 @@ import java.util.Map;
 public class DockerComposeScriptEngine extends AbstractScriptEngine {
 
     private static final String DOCKER_HOST_PROPERTY_NAME = "DOCKER_HOST";
-    private static final String LOG4J_CONFIGURATION_FILE = "config/log/scriptengines.properties";
+
 
     private ProcessBuilderUtilities processBuilderUtilities = new ProcessBuilderUtilities();
     private VariablesReplacer variablesReplacer = new VariablesReplacer();
@@ -28,25 +29,12 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
     private StringBindingsAdder stringBindingsAdder = new StringBindingsAdder(
             new MapBindingsAdder());
     private DockerComposeCommandCreator dockerComposeCommandCreator = new DockerComposeCommandCreator();
+    private Log4jConfigurationLoader log4jConfigurationLoader = new Log4jConfigurationLoader();
 
 
     public DockerComposeScriptEngine() {
-        // This is the entrypoint of the script engine
-        // configure the logger here, quick and dirty
-        // Catch all exceptions to not sacrifice functionality for logging.
-        try {
-            org.apache.log4j.PropertyConfigurator.configure(getClass()
-                    .getClassLoader().getResourceAsStream(LOG4J_CONFIGURATION_FILE));
-        } catch (NullPointerException e) { //NOSONAR
-            System.err.println("Log4j configuration file not found: " + LOG4J_CONFIGURATION_FILE + //NOSONAR
-                    ". Any output for the Docker Compose script engine is disabled."); //NOSONAR
-        } catch (Exception e) { //NOSONAR
-            System.err.println("Log4j initialization failed: " + LOG4J_CONFIGURATION_FILE + //NOSONAR
-                    ". Docker Compose script engine is functional but logging is disabled." + //NOSONAR
-                    "Stacktrace is: "); //NOSONAR
-            e.printStackTrace(); //NOSONAR
-        }
-
+        // This is the entry-point of the script engine
+        log4jConfigurationLoader.loadLog4jConfiguration();
     }
 
 
