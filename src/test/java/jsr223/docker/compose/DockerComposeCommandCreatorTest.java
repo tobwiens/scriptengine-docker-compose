@@ -6,9 +6,10 @@ import org.junit.Test;
 import testing.utils.ReflectionUtilities;
 
 import java.lang.reflect.Field;
-import java.util.List;
 
 public class DockerComposeCommandCreatorTest {
+
+    private final DockerComposeCommandCreator dockerCommandCreator = new DockerComposeCommandCreator();
 
     @Test
     public void testDockerExecutionCommandWithSudo() throws NoSuchFieldException, IllegalAccessException {
@@ -29,61 +30,42 @@ public class DockerComposeCommandCreatorTest {
     }
 
     /**
-     * Test whether the stop command has the right structure.
-     * @throws NoSuchFieldException
-     * @throws IllegalAccessException
-     */
-    @Test
-    public void testDockerComposeStopCommand() throws NoSuchFieldException, IllegalAccessException {
-        String[] command = DockerComposeCommandCreator.createDockerComposeStopCommand();
-        // Running index; which position of array will currently be checked.
-        int index = 0;
-
-        // Check if sudo is added correctly
-        index = checkSudoAndComposeCommand(command, index);
-
-        // Check if stop argument is next
-        Assert.assertEquals("Stop option must be used.",
-                ReflectionUtilities.makeFieldAccessible("stopContainerArgument",
-                        DockerComposeCommandCreator.class).get(new DockerComposeCommandCreator()),
-        command[index++]);
-    }
-
-    /**
      * Test whether the remove command has the right structure.
+     *
      * @throws NoSuchFieldException
      * @throws IllegalAccessException
      */
     @Test
-    public void testDockerComposeRemoveCommand() throws NoSuchFieldException, IllegalAccessException {
-        String[] command = DockerComposeCommandCreator.createDockerComposeRemoveCommand();
+    public void testDockerComposeDownCommand() throws NoSuchFieldException, IllegalAccessException {
+        String[] command = dockerCommandCreator.createDockerComposeDownCommand();
         // Running index; which position of array will currently be checked.
         int index = 0;
 
         // Check if sudo is added correctly
         index = checkSudoAndComposeCommand(command, index);
 
-        // Check if stop argument is next
-        Assert.assertEquals("Stop option must be used.",
-                ReflectionUtilities.makeFieldAccessible("removeContainerArgument",
-                        DockerComposeCommandCreator.class).get(new DockerComposeCommandCreator()),
+
+
+        // Check if stop and remove (down) argument is next
+        Assert.assertEquals("Down option must be used.",
+                dockerCommandCreator.STOP_AND_REMOVE_CONTAINER_ARGUMENT,
                 command[index++]);
 
-        // Check if stop argument is next
-        Assert.assertEquals("Stop option must be use force argument.",
-                ReflectionUtilities.makeFieldAccessible("removeWithForceContainerArgument",
-                        DockerComposeCommandCreator.class).get(new DockerComposeCommandCreator()),
+        // Check if volume argument is next
+        Assert.assertEquals("Volume option must be used after down.",
+                dockerCommandCreator.VOLUMES_ARGUMENT,
                 command[index++]);
     }
 
     /**
-     * Check whether the exeuction command has the right structure.
+     * Check whether the execution command has the right structure.
+     *
      * @throws NoSuchFieldException
      * @throws IllegalAccessException
      */
     @Test
     public void testDockerComposeExecutionCommand() throws NoSuchFieldException, IllegalAccessException {
-        String[] command = DockerComposeCommandCreator.createDockerComposeExecutionCommand();
+        String[] command = dockerCommandCreator.createDockerComposeExecutionCommand();
         int index = 0;
 
         // Check if sudo and compose command are added correctly
@@ -92,20 +74,17 @@ public class DockerComposeCommandCreatorTest {
 
         // Check if file argument is used
         Assert.assertEquals("File option must be used.",
-                ReflectionUtilities.makeFieldAccessible("filenameArgument",
-                        DockerComposeCommandCreator.class).get(new DockerComposeCommandCreator()),
+                DockerComposeCommandCreator.FILENAME_ARGUMENT,
                 command[index++]);
 
         // Check if correct filename is used
         Assert.assertEquals("Correct filename must be used in command.",
-                ReflectionUtilities.makeFieldAccessible("yamlFileName",
-                        DockerComposeCommandCreator.class).get(new DockerComposeCommandCreator()),
+                DockerComposeCommandCreator.YAML_FILE_NAME,
                 command[index++]);
 
         // Check whether correct start command for yaml file is used
         Assert.assertEquals("Correct argument for compose command must be used.",
-                ReflectionUtilities.makeFieldAccessible("setupContainerArgument",
-                        DockerComposeCommandCreator.class).get(new DockerComposeCommandCreator()),
+                DockerComposeCommandCreator.START_CONTAINER_ARGUMENT,
                 command[index++]);
     }
 

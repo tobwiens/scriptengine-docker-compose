@@ -15,7 +15,7 @@ import processbuilder.utils.ProcessBuilderUtilities;
 public class DockerComposeVersionGetter {
 
     @NonNull
-    ProcessBuilderUtilities processBuilderUtilities;
+    private ProcessBuilderUtilities processBuilderUtilities;
 
     /**
      * Retrieves the docker compose version.

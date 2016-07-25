@@ -35,6 +35,7 @@
 package jsr223.docker.compose.utils;
 
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j;
 
@@ -45,30 +46,25 @@ import java.util.Properties;
 @Log4j
 public class DockerComposePropertyLoader {
 
-    @lombok.Getter
-    public String dockerHost;
+    private final static String CONFIGURATION_FILE = "config/scriptengines/docker-compose.properties";
+    @Getter
+    private final String dockerHost;
+    @Getter
+    private final String dockerComposeCommand;
+    @Getter
+    private final String sudoCommand;
+    @Getter
+    private final boolean useSudo;
+    private final Properties properties;
 
-    @lombok.Getter
-    public String dockerComposeCommand;
-
-    @lombok.Getter
-    public String sudoCommand;
-
-    @lombok.Getter
-    public boolean useSudo;
-
-    protected Properties properties;
-
-    protected String configurationFile = "config/scriptengines/docker-compose.properties";
-
-    private DockerComposePropertyLoader()  {
+    private DockerComposePropertyLoader() {
         properties = new Properties();
         try {
-            log.debug("Load properties from configuration file: "+configurationFile);
-            properties.load(getClass().getClassLoader().getResourceAsStream(configurationFile));
+            log.debug("Load properties from configuration file: " + CONFIGURATION_FILE);
+            properties.load(getClass().getClassLoader().getResourceAsStream(CONFIGURATION_FILE));
         } catch (IOException | NullPointerException e) {
-            log.info("Configuration file "+configurationFile+" not found. Standard values will be used.");
-            log.debug("Configuration file "+configurationFile+" not found. Standard values will be used.", e);
+            log.info("Configuration file " + CONFIGURATION_FILE + " not found. Standard values will be used.");
+            log.debug("Configuration file " + CONFIGURATION_FILE + " not found. Standard values will be used.", e);
         }
 
         // Get property, specify default value
@@ -83,20 +79,20 @@ public class DockerComposePropertyLoader {
         this.dockerHost = properties.getProperty("docker.host", "");
     }
 
-
-
-
-     /**    Initializes DockerComposePropertyLoader.
-
-      DockerComposePropertyLoaderHolder is loaded on the first execution of DockerComposePropertyLoader.getInstance()
-      or the first access to DockerComposePropertyLoaderHolder.INSTANCE, not before.
-    **/
-     @NoArgsConstructor(access = AccessLevel.PRIVATE)
-    private static class DockerComposePropertyLoaderHolder {
-        private static final DockerComposePropertyLoader INSTANCE = new DockerComposePropertyLoader();
-    }
-
     public static DockerComposePropertyLoader getInstance() {
         return DockerComposePropertyLoaderHolder.INSTANCE;
+    }
+
+    /**
+     * Initializes DockerComposePropertyLoader.
+     * <p>
+     * DockerComposePropertyLoaderHolder is loaded on the first execution of DockerComposePropertyLoader.getInstance()
+     * or the first access to DockerComposePropertyLoaderHolder.INSTANCE, not before.
+     **/
+    private static class DockerComposePropertyLoaderHolder {
+        private static final DockerComposePropertyLoader INSTANCE = new DockerComposePropertyLoader();
+
+        private DockerComposePropertyLoaderHolder() {
+        }
     }
 }

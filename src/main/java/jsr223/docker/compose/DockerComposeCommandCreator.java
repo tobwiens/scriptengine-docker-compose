@@ -1,47 +1,35 @@
 package jsr223.docker.compose;
 
+import jsr223.docker.compose.utils.DockerComposePropertyLoader;
+import lombok.NoArgsConstructor;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import jsr223.docker.compose.utils.DockerComposePropertyLoader;
-
+@NoArgsConstructor
 public class DockerComposeCommandCreator {
 
     // Constants
-    @lombok.Getter
-    private static String yamlFileName = "docker-compose.yml";
-    private static String filenameArgument = "-f";
-    private static String stopContainerArgument = "stop";
-    private static String removeContainerArgument = "rm";
-    private static String removeWithForceContainerArgument = "--force";
-    private static String setupContainerArgument = "up";
+    public static final String YAML_FILE_NAME = "docker-compose.yml";
+    public static final String FILENAME_ARGUMENT = "-f";
+    public static final String START_CONTAINER_ARGUMENT = "up";
+    public static final String STOP_AND_REMOVE_CONTAINER_ARGUMENT = "down";
+    public static final String VOLUMES_ARGUMENT = "--volumes";
 
 
     /**
-     * Construct the docker compose stop command.
+     * Construct docker compose down command.
      *
      * @return String array representing a command.
      */
-    public static String[] createDockerComposeStopCommand() {
+    public String[] createDockerComposeDownCommand() {
         List<String> command = new ArrayList<>();
         addSudoAndDockerComposeCommand(command);
 
-        command.add(stopContainerArgument);
-        return command.toArray(new String[command.size()]);
-    }
-
-    /**
-     * Construct docker compose remove command.
-     *
-     * @return String array representing a command.
-     */
-    public static String[] createDockerComposeRemoveCommand() {
-        List<String> command = new ArrayList<>();
-        addSudoAndDockerComposeCommand(command);
-
-        // Remove container with force; otherwise user input is expected.
-        command.add(removeContainerArgument);
-        command.add(removeWithForceContainerArgument);
+        // Stop and remove containers
+        command.add(STOP_AND_REMOVE_CONTAINER_ARGUMENT);
+        // Remove volumes with containers
+        command.add(VOLUMES_ARGUMENT);
         return command.toArray(new String[command.size()]);
     }
 
@@ -52,19 +40,19 @@ public class DockerComposeCommandCreator {
      * @return A String array which contains the command as a separate @String and each
      * argument as a separate String.
      */
-    public static String[] createDockerComposeExecutionCommand() {
+    public String[] createDockerComposeExecutionCommand() {
         List<String> command = new ArrayList<>();
         addSudoAndDockerComposeCommand(command);
 
 
         // Add filename argument
-        command.add(filenameArgument);
+        command.add(FILENAME_ARGUMENT);
 
         // Add filename
-        command.add(yamlFileName);
+        command.add(YAML_FILE_NAME);
 
         // Start container with argument
-        command.add(setupContainerArgument);
+        command.add(START_CONTAINER_ARGUMENT);
         return command.toArray(new String[command.size()]);
     }
 
@@ -74,7 +62,7 @@ public class DockerComposeCommandCreator {
      *
      * @param command List which gets the command(s) added.
      */
-    private static void addSudoAndDockerComposeCommand(List<String> command) {
+    private void addSudoAndDockerComposeCommand(List<String> command) {
         // Add sudo if necessary
         if (DockerComposePropertyLoader.getInstance().isUseSudo()) {
             command.add(DockerComposePropertyLoader.getInstance().getSudoCommand());

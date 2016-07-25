@@ -1,15 +1,13 @@
 package jsr223.docker.compose.bindings;
 
+import org.junit.Assert;
+import org.junit.Test;
+
+import javax.script.ScriptException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.script.ScriptException;
-
-import org.junit.Assert;
-import org.junit.Test;
-
-import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.junit.Assert.assertThat;
 
@@ -26,7 +24,7 @@ public class MapBindingsAdderTest {
         nullValues.put(null, null);
 
         // Iterate through the null values and pass them to the add method.
-        for ( Map.Entry<String, Object> entry : nullValues.entrySet()) {
+        for (Map.Entry<String, Object> entry : nullValues.entrySet()) {
             mapBindingsAdder.addEntryToEnvironmentOtherThanPureStrings(environment, entry);
         }
 
@@ -44,7 +42,7 @@ public class MapBindingsAdderTest {
         variableMap.put("greetings", "Hello World");
 
         // Iterate through the null values and pass them to the add method.
-        for ( Map.Entry<String, Object> entry : variableMap.entrySet()) {
+        for (Map.Entry<String, Object> entry : variableMap.entrySet()) {
             mapBindingsAdder.addEntryToEnvironmentOtherThanPureStrings(null, entry);
         }
     }
@@ -72,12 +70,12 @@ public class MapBindingsAdderTest {
         outsideMap.put("variables", variableMap);
 
         // Add map which contains map
-        for ( Map.Entry<String, Object> entry : outsideMap.entrySet()) {
+        for (Map.Entry<String, Object> entry : outsideMap.entrySet()) {
             mapBindingsAdder.addEntryToEnvironmentOtherThanPureStrings(environment, entry);
         }
 
-        assertThat(environment, hasEntry("container","dockerfile/ubuntu" ));
-        assertThat(environment, hasEntry("greetings","Hello World"));
+        assertThat(environment, hasEntry("container", "dockerfile/ubuntu"));
+        assertThat(environment, hasEntry("greetings", "Hello World"));
     }
 
 }
