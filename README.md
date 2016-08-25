@@ -1,4 +1,6 @@
 # jsr223-docker-compose
+[![Build Status](http://jenkins.activeeon.com/buildStatus/icon?job=SE-docker)](http://jenkins.activeeon.com/job/SE-docker/)
+
 Execute a docker compose script; invoke the local docker compose client through a java JSR 223
 script engine.
 
