@@ -1,4 +1,38 @@
+/*
+ * ProActive Parallel Suite(TM):
+ * The Open Source library for parallel and distributed
+ * Workflows & Scheduling, Orchestration, Cloud Automation
+ * and Big Data Analysis on Enterprise Grids & Clouds.
+ *
+ * Copyright (c) 2007 - 2017 ActiveEon
+ * Contact: contact@activeeon.com
+ *
+ * This library is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License
+ * as published by the Free Software Foundation: version 3 of
+ * the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * If needed, contact us to obtain a release under GPL Version 2 or 3
+ * or a different license than the AGPL.
+ */
 package jsr223.docker.compose.bindings;
+
+import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -10,14 +44,6 @@ import javax.script.SimpleBindings;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 public class StringBindingsAdderTest {
 
@@ -111,7 +137,7 @@ public class StringBindingsAdderTest {
     public void testUseObjectBindingsAdderIFObjectIsPassed() throws ScriptException, IOException {
         MapBindingsAdder mapBindingsAdderMock = mock(MapBindingsAdder.class);
         doNothing().when(mapBindingsAdderMock).addEntryToEnvironmentOtherThanPureStrings(any(Map.class),
-                any(Map.Entry.class));
+                                                                                         any(Map.Entry.class));
         StringBindingsAdder stringBindingsAdder = new StringBindingsAdder(mapBindingsAdderMock);
         // Create bindings and variables
         Map<String, String> variables = new HashMap<>();
@@ -129,7 +155,7 @@ public class StringBindingsAdderTest {
 
         // Verify that the object adder was executed three times, for each of the not string objects.
         verify(mapBindingsAdderMock, times(3)).addEntryToEnvironmentOtherThanPureStrings(any(Map.class),
-                any(Map.Entry.class));
+                                                                                         any(Map.Entry.class));
     }
 
 }
