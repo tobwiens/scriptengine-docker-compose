@@ -1,4 +1,37 @@
+/*
+ * ProActive Parallel Suite(TM):
+ * The Open Source library for parallel and distributed
+ * Workflows & Scheduling, Orchestration, Cloud Automation
+ * and Big Data Analysis on Enterprise Grids & Clouds.
+ *
+ * Copyright (c) 2007 - 2017 ActiveEon
+ * Contact: contact@activeeon.com
+ *
+ * This library is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License
+ * as published by the Free Software Foundation: version 3 of
+ * the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * If needed, contact us to obtain a release under GPL Version 2 or 3
+ * or a different license than the AGPL.
+ */
 package jsr223.docker.compose;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringWriter;
+import java.util.Map;
+
+import javax.script.*;
 
 import jsr223.docker.compose.bindings.MapBindingsAdder;
 import jsr223.docker.compose.bindings.StringBindingsAdder;
@@ -10,54 +43,46 @@ import lombok.extern.log4j.Log4j;
 import processbuilder.SingletonProcessBuilderFactory;
 import processbuilder.utils.ProcessBuilderUtilities;
 
-import javax.script.*;
-import java.io.File;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringWriter;
-import java.util.Map;
 
 @Log4j
 public class DockerComposeScriptEngine extends AbstractScriptEngine {
 
     private static final String DOCKER_HOST_PROPERTY_NAME = "DOCKER_HOST";
 
-
     private ProcessBuilderUtilities processBuilderUtilities = new ProcessBuilderUtilities();
-    private VariablesReplacer variablesReplacer = new VariablesReplacer();
-    private ConfigurationFileWriter configurationFileWriter = new ConfigurationFileWriter();
-    private StringBindingsAdder stringBindingsAdder = new StringBindingsAdder(
-            new MapBindingsAdder());
-    private DockerComposeCommandCreator dockerComposeCommandCreator = new DockerComposeCommandCreator();
-    private Log4jConfigurationLoader log4jConfigurationLoader = new Log4jConfigurationLoader();
 
+    private VariablesReplacer variablesReplacer = new VariablesReplacer();
+
+    private ConfigurationFileWriter configurationFileWriter = new ConfigurationFileWriter();
+
+    private StringBindingsAdder stringBindingsAdder = new StringBindingsAdder(new MapBindingsAdder());
+
+    private DockerComposeCommandCreator dockerComposeCommandCreator = new DockerComposeCommandCreator();
+
+    private Log4jConfigurationLoader log4jConfigurationLoader = new Log4jConfigurationLoader();
 
     public DockerComposeScriptEngine() {
         // This is the entry-point of the script engine
         log4jConfigurationLoader.loadLog4jConfiguration();
     }
 
-
     @Override
     public Object eval(String script, ScriptContext context) throws ScriptException {
         // Create docker compose command
-        String[] dockerComposeCommand = dockerComposeCommandCreator
-                .createDockerComposeExecutionCommand();
+        String[] dockerComposeCommand = dockerComposeCommandCreator.createDockerComposeExecutionCommand();
 
         // Create a process builder
-        ProcessBuilder processBuilder = SingletonProcessBuilderFactory
-                .getInstance().getProcessBuilder(dockerComposeCommand);
+        ProcessBuilder processBuilder = SingletonProcessBuilderFactory.getInstance()
+                                                                      .getProcessBuilder(dockerComposeCommand);
 
         // Use process builder environment and fill it with environment variables
         Map<String, String> variablesMap = processBuilder.environment();
 
         // Add string bindings as environment variables
-        stringBindingsAdder.addBindingToStringMap(context.getBindings(ScriptContext.ENGINE_SCOPE),
-                variablesMap);
+        stringBindingsAdder.addBindingToStringMap(context.getBindings(ScriptContext.ENGINE_SCOPE), variablesMap);
 
         // Add DOCKER_HOST variable to execution environment
-        variablesMap.put(DOCKER_HOST_PROPERTY_NAME,
-                DockerComposePropertyLoader.getInstance().getDockerHost());
+        variablesMap.put(DOCKER_HOST_PROPERTY_NAME, DockerComposePropertyLoader.getInstance().getDockerHost());
 
         // Replace variables in configuration file
         String scriptReplacedVariables = variablesReplacer.replaceVariables(script, variablesMap);
@@ -66,16 +91,16 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
 
         try {
             composeYamlFile = configurationFileWriter.forceFileToDisk(scriptReplacedVariables,
-                    dockerComposeCommandCreator.YAML_FILE_NAME);
+                                                                      dockerComposeCommandCreator.YAML_FILE_NAME);
 
             // Start process
             Process process = processBuilder.start();
 
             // Attach streams
             processBuilderUtilities.attachStreamsToProcess(process,
-                    context.getWriter(),
-                    context.getErrorWriter(),
-                    context.getReader());
+                                                           context.getWriter(),
+                                                           context.getErrorWriter(),
+                                                           context.getReader());
 
             // Wait for process to exit
             return process.waitFor();
@@ -103,12 +128,10 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
     }
 
     private Process stopAndRemoveContainers() throws IOException {
-        return SingletonProcessBuilderFactory
-                .getInstance()
-                .getProcessBuilder(dockerComposeCommandCreator.createDockerComposeDownCommand())
-                .start();
+        return SingletonProcessBuilderFactory.getInstance()
+                                             .getProcessBuilder(dockerComposeCommandCreator.createDockerComposeDownCommand())
+                                             .start();
     }
-
 
     // TODO: Test
     @Override
@@ -119,16 +142,12 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
         try {
             ProcessBuilderUtilities.pipe(reader, stringWriter);
         } catch (IOException e) {
-            log.warn(
-                    "Filed to convert Reader into StringWriter. Not possible to execute Docker Compose script.");
-            log.debug(
-                    "Filed to convert Reader into StringWriter. Not possible to execute Docker Compose script.",
-                    e);
+            log.warn("Filed to convert Reader into StringWriter. Not possible to execute Docker Compose script.");
+            log.debug("Filed to convert Reader into StringWriter. Not possible to execute Docker Compose script.", e);
         }
 
         return eval(stringWriter.toString(), context);
     }
-
 
     @Override
     public Bindings createBindings() {
