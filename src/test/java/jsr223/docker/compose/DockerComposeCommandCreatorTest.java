@@ -92,7 +92,7 @@ public class DockerComposeCommandCreatorTest {
 
         int indexOfUp = command.indexOf(DockerComposeCommandCreator.START_CONTAINER_ARGUMENT);
 
-        assertTrue(command.get(indexOfUp+1).equals("--option1"));
+        assertTrue(command.get(indexOfUp + 1).equals("--option1"));
     }
 
     /**
@@ -103,7 +103,7 @@ public class DockerComposeCommandCreatorTest {
      */
     @Test
     public void testDockerComposeExecutionCommand() throws NoSuchFieldException, IllegalAccessException {
-        String[] command = dockerCommandCreator.createDockerComposeExecutionCommand(Collections.<String>emptyList());
+        String[] command = dockerCommandCreator.createDockerComposeExecutionCommand(Collections.<String> emptyList());
         int index = 0;
 
         // Check if sudo and compose command are added correctly
