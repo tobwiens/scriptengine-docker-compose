@@ -25,7 +25,6 @@
  */
 package jsr223.docker.compose.utils;
 
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -44,17 +43,20 @@ import lombok.extern.log4j.Log4j;
 public class CommandlineOptionsFromBindingsExtractor {
 
     public final static String GENERIC_INFORMATION_KEY = "genericInformation";
+
     public final static String DOCKER_COMPOSE_UP_COMMANDLINE_OPTIONS_KEY = "docker-compose-up-options";
+
     public final static String DOCKER_COMPOSE_COMMANDLINE_OPTIONS_SPLIT_REGEX_KEY = "docker-compose-options-split-regex";
+
     public final static String DOCKER_COMPOSE_COMMANDLINE_OPTIONS_SPLIT_REGEX_DEFAULT = " ";
 
     public List<String> getDockerComposeCommandOptions(Bindings bindings) {
-        if(!bindings.containsKey(GENERIC_INFORMATION_KEY)) {
+        if (!bindings.containsKey(GENERIC_INFORMATION_KEY)) {
             return Collections.emptyList();
         }
 
         Object bindingsObject = bindings.get(GENERIC_INFORMATION_KEY);
-        if(bindingsObject instanceof Map) {
+        if (bindingsObject instanceof Map) {
             Map<String, String> genericInformation = (Map<String, String>) bindings.get(GENERIC_INFORMATION_KEY);
             return extractDockerComposeUpCommandOptionsFromMap(genericInformation);
         } else {
@@ -64,13 +66,12 @@ public class CommandlineOptionsFromBindingsExtractor {
 
     }
 
-    private List<String> extractDockerComposeUpCommandOptionsFromMap(Map<String,String> genericInformationMap) {
+    private List<String> extractDockerComposeUpCommandOptionsFromMap(Map<String, String> genericInformationMap) {
         String splitCharacter = DOCKER_COMPOSE_COMMANDLINE_OPTIONS_SPLIT_REGEX_DEFAULT;
-        if(genericInformationMap.get(DOCKER_COMPOSE_COMMANDLINE_OPTIONS_SPLIT_REGEX_KEY) != null){
+        if (genericInformationMap.get(DOCKER_COMPOSE_COMMANDLINE_OPTIONS_SPLIT_REGEX_KEY) != null) {
             splitCharacter = genericInformationMap.get(DOCKER_COMPOSE_COMMANDLINE_OPTIONS_SPLIT_REGEX_KEY);
         }
-        return Arrays
-                .asList(genericInformationMap.get(DOCKER_COMPOSE_UP_COMMANDLINE_OPTIONS_KEY)
-                .split(splitCharacter));
+        return Arrays.asList(genericInformationMap.get(DOCKER_COMPOSE_UP_COMMANDLINE_OPTIONS_KEY)
+                                                  .split(splitCharacter));
     }
 }
