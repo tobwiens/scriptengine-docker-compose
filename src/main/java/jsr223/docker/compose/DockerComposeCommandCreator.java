@@ -68,7 +68,7 @@ public class DockerComposeCommandCreator {
      * @return A String array which contains the command as a separate @String and each
      * argument as a separate String.
      */
-    public String[] createDockerComposeExecutionCommand() {
+    public String[] createDockerComposeExecutionCommand(List<String> dockerComposeUpCommandOptions) {
         List<String> command = new ArrayList<>();
         addSudoAndDockerComposeCommand(command);
 
@@ -80,6 +80,9 @@ public class DockerComposeCommandCreator {
 
         // Start container with argument
         command.add(START_CONTAINER_ARGUMENT);
+
+        command.addAll(dockerComposeUpCommandOptions);
+
         return command.toArray(new String[command.size()]);
     }
 
