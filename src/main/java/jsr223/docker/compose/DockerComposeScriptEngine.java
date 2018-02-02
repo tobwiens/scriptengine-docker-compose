@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.util.List;
 import java.util.Map;
 
 import javax.script.*;
@@ -36,8 +37,10 @@ import javax.script.*;
 import jsr223.docker.compose.bindings.MapBindingsAdder;
 import jsr223.docker.compose.bindings.StringBindingsAdder;
 import jsr223.docker.compose.file.write.ConfigurationFileWriter;
+import jsr223.docker.compose.utils.CommandlineOptionsFromBindingsExtractor;
 import jsr223.docker.compose.utils.DockerComposePropertyLoader;
 import jsr223.docker.compose.utils.Log4jConfigurationLoader;
+import jsr223.docker.compose.utils.ScriptContextBindingsExtractor;
 import jsr223.docker.compose.yaml.VariablesReplacer;
 import lombok.extern.log4j.Log4j;
 import processbuilder.SingletonProcessBuilderFactory;
@@ -59,6 +62,10 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
 
     private DockerComposeCommandCreator dockerComposeCommandCreator = new DockerComposeCommandCreator();
 
+    private CommandlineOptionsFromBindingsExtractor commandlineOptionsFromBindingsExtractor = new CommandlineOptionsFromBindingsExtractor();
+
+    private ScriptContextBindingsExtractor scriptContextBindingsExtractor = new ScriptContextBindingsExtractor();
+
     private Log4jConfigurationLoader log4jConfigurationLoader = new Log4jConfigurationLoader();
 
     public DockerComposeScriptEngine() {
@@ -68,8 +75,11 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
 
     @Override
     public Object eval(String script, ScriptContext context) throws ScriptException {
+        Bindings bindings = scriptContextBindingsExtractor.extractFrom(context);
+        List<String> dockerComposeOptions = commandlineOptionsFromBindingsExtractor.getDockerComposeCommandOptions(bindings);
+
         // Create docker compose command
-        String[] dockerComposeCommand = dockerComposeCommandCreator.createDockerComposeExecutionCommand();
+        String[] dockerComposeCommand = dockerComposeCommandCreator.createDockerComposeExecutionCommand(dockerComposeOptions);
 
         // Create a process builder
         ProcessBuilder processBuilder = SingletonProcessBuilderFactory.getInstance()

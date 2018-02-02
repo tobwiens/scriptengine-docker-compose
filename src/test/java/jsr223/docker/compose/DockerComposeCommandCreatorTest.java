@@ -25,7 +25,12 @@
  */
 package jsr223.docker.compose;
 
+import static org.junit.Assert.assertTrue;
+
 import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -81,6 +86,15 @@ public class DockerComposeCommandCreatorTest {
                             command[index++]);
     }
 
+    @Test
+    public void testThatDockerComposeUpOptionsArePlacedBehindUp() {
+        List<String> command = Arrays.asList(dockerCommandCreator.createDockerComposeExecutionCommand(Arrays.asList("--option1")));
+
+        int indexOfUp = command.indexOf(DockerComposeCommandCreator.START_CONTAINER_ARGUMENT);
+
+        assertTrue(command.get(indexOfUp+1).equals("--option1"));
+    }
+
     /**
      * Check whether the execution command has the right structure.
      *
@@ -89,7 +103,7 @@ public class DockerComposeCommandCreatorTest {
      */
     @Test
     public void testDockerComposeExecutionCommand() throws NoSuchFieldException, IllegalAccessException {
-        String[] command = dockerCommandCreator.createDockerComposeExecutionCommand();
+        String[] command = dockerCommandCreator.createDockerComposeExecutionCommand(Collections.<String>emptyList());
         int index = 0;
 
         // Check if sudo and compose command are added correctly
