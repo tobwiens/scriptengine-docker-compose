@@ -79,4 +79,27 @@ public class CommandlineOptionsFromBindingsExtractorTest {
         assertTrue(options.size() == 2);
     }
 
+    @Test
+    public void testThatEmptyOptionsReturnEmptyList() {
+        CommandlineOptionsFromBindingsExtractor commandlineOptionsFromBindingsExtractor = new CommandlineOptionsFromBindingsExtractor();
+
+        Bindings bindings = new SimpleBindings();
+        Map<String, String> genericInformation = new HashMap<>();
+        bindings.put(CommandlineOptionsFromBindingsExtractor.GENERIC_INFORMATION_KEY, genericInformation);
+
+        List<String> options = commandlineOptionsFromBindingsExtractor.getDockerComposeCommandOptions(bindings);
+
+        assertTrue(options.size() == 0);
+    }
+
+    @Test
+    public void testThatNoGenericInformationReturnEmptyList() {
+        CommandlineOptionsFromBindingsExtractor commandlineOptionsFromBindingsExtractor = new CommandlineOptionsFromBindingsExtractor();
+
+        Bindings bindings = new SimpleBindings();
+        List<String> options = commandlineOptionsFromBindingsExtractor.getDockerComposeCommandOptions(bindings);
+
+        assertTrue(options.size() == 0);
+    }
+
 }
