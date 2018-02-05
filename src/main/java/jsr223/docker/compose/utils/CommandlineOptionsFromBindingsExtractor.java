@@ -71,7 +71,12 @@ public class CommandlineOptionsFromBindingsExtractor {
         if (genericInformationMap.get(DOCKER_COMPOSE_COMMANDLINE_OPTIONS_SPLIT_REGEX_KEY) != null) {
             splitCharacter = genericInformationMap.get(DOCKER_COMPOSE_COMMANDLINE_OPTIONS_SPLIT_REGEX_KEY);
         }
-        return Arrays.asList(genericInformationMap.get(DOCKER_COMPOSE_UP_COMMANDLINE_OPTIONS_KEY)
-                                                  .split(splitCharacter));
+
+        if (genericInformationMap.get(DOCKER_COMPOSE_UP_COMMANDLINE_OPTIONS_KEY) != null) {
+            return Arrays.asList(genericInformationMap.get(DOCKER_COMPOSE_UP_COMMANDLINE_OPTIONS_KEY)
+                                                      .split(splitCharacter));
+        } else {
+            return Collections.emptyList();
+        }
     }
 }
