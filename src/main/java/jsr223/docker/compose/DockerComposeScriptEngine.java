@@ -113,7 +113,12 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
                                                            context.getReader());
 
             // Wait for process to exit
-            return process.waitFor();
+            int exitValue = process.waitFor();
+
+            if (exitValue != 0) {
+                throw new ScriptException("Docker Compose failed with exit code " + exitValue);
+            }
+            return exitValue;
         } catch (IOException e) {
             log.warn("Failed to execute Docker Compose.", e);
         } catch (InterruptedException e) {
