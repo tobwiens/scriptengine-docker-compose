@@ -27,7 +27,9 @@ package jsr223.docker.compose;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import jsr223.docker.compose.utils.CommandlineOptionsFromBindingsExtractor.OptionType;
 import jsr223.docker.compose.utils.DockerComposePropertyLoader;
 import lombok.NoArgsConstructor;
 
@@ -68,9 +70,14 @@ public class DockerComposeCommandCreator {
      * @return A String array which contains the command as a separate @String and each
      * argument as a separate String.
      */
-    public String[] createDockerComposeExecutionCommand(List<String> dockerComposeUpCommandOptions) {
+    public String[] createDockerComposeExecutionCommand(Map<OptionType, List<String>> commandOptions) {
         List<String> command = new ArrayList<>();
+        List<String> generalOptions = new ArrayList<>(commandOptions.get(OptionType.GENERAL_OPTION));
+        List<String> upOptions = new ArrayList<>(commandOptions.get(OptionType.UP_OPTION));
         addSudoAndDockerComposeCommand(command);
+
+        // Add the general parameters
+        command.addAll(generalOptions);
 
         // Add filename argument
         command.add(FILENAME_ARGUMENT);
@@ -81,7 +88,7 @@ public class DockerComposeCommandCreator {
         // Start container with argument
         command.add(START_CONTAINER_ARGUMENT);
 
-        command.addAll(dockerComposeUpCommandOptions);
+        command.addAll(upOptions);
 
         return command.toArray(new String[command.size()]);
     }

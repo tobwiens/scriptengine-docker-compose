@@ -27,6 +27,7 @@ package jsr223.docker.compose.utils;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
@@ -46,13 +47,20 @@ public class CommandlineOptionsFromBindingsExtractor {
 
     public final static String DOCKER_COMPOSE_UP_COMMANDLINE_OPTIONS_KEY = "docker-compose-up-options";
 
+    public final static String DOCKER_COMPOSE_COMMANDLINE_OPTIONS_KEY = "docker-compose-options";
+
     public final static String DOCKER_COMPOSE_COMMANDLINE_OPTIONS_SPLIT_REGEX_KEY = "docker-compose-options-split-regex";
 
     public final static String DOCKER_COMPOSE_COMMANDLINE_OPTIONS_SPLIT_REGEX_DEFAULT = " ";
 
-    public List<String> getDockerComposeCommandOptions(Bindings bindings) {
+    public enum OptionType {
+        UP_OPTION,
+        GENERAL_OPTION
+    }
+
+    public Map<OptionType, List<String>> getDockerComposeCommandOptions(Bindings bindings) {
         if (!bindings.containsKey(GENERIC_INFORMATION_KEY)) {
-            return Collections.emptyList();
+            return Collections.emptyMap();
         }
 
         Object bindingsObject = bindings.get(GENERIC_INFORMATION_KEY);
@@ -61,22 +69,33 @@ public class CommandlineOptionsFromBindingsExtractor {
             return extractDockerComposeUpCommandOptionsFromMap(genericInformation);
         } else {
             log.warn("Generic Information could not be retrieved. Docker command options could not be extracted.");
-            return Collections.emptyList();
+            return Collections.emptyMap();
         }
 
     }
 
-    private List<String> extractDockerComposeUpCommandOptionsFromMap(Map<String, String> genericInformationMap) {
+    private Map<OptionType, List<String>>
+            extractDockerComposeUpCommandOptionsFromMap(Map<String, String> genericInformationMap) {
+        List<String> upCmdOptions = Collections.emptyList();
+        List<String> generalCmdOptions = Collections.emptyList();
         String splitCharacter = DOCKER_COMPOSE_COMMANDLINE_OPTIONS_SPLIT_REGEX_DEFAULT;
         if (genericInformationMap.get(DOCKER_COMPOSE_COMMANDLINE_OPTIONS_SPLIT_REGEX_KEY) != null) {
             splitCharacter = genericInformationMap.get(DOCKER_COMPOSE_COMMANDLINE_OPTIONS_SPLIT_REGEX_KEY);
         }
 
         if (genericInformationMap.get(DOCKER_COMPOSE_UP_COMMANDLINE_OPTIONS_KEY) != null) {
-            return Arrays.asList(genericInformationMap.get(DOCKER_COMPOSE_UP_COMMANDLINE_OPTIONS_KEY)
-                                                      .split(splitCharacter));
-        } else {
-            return Collections.emptyList();
+            upCmdOptions = Arrays.asList(genericInformationMap.get(DOCKER_COMPOSE_UP_COMMANDLINE_OPTIONS_KEY)
+                                                              .split(splitCharacter));
         }
+
+        if (genericInformationMap.get(DOCKER_COMPOSE_COMMANDLINE_OPTIONS_KEY) != null) {
+            generalCmdOptions = Arrays.asList(genericInformationMap.get(DOCKER_COMPOSE_COMMANDLINE_OPTIONS_KEY)
+                                                                   .split(splitCharacter));
+        }
+
+        EnumMap<OptionType, List<String>> options = new EnumMap<OptionType, List<String>>(OptionType.class);
+        options.put(OptionType.GENERAL_OPTION, generalCmdOptions);
+        options.put(OptionType.UP_OPTION, upCmdOptions);
+        return options;
     }
 }
