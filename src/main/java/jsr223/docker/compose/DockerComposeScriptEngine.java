@@ -38,6 +38,7 @@ import jsr223.docker.compose.bindings.MapBindingsAdder;
 import jsr223.docker.compose.bindings.StringBindingsAdder;
 import jsr223.docker.compose.file.write.ConfigurationFileWriter;
 import jsr223.docker.compose.utils.CommandlineOptionsFromBindingsExtractor;
+import jsr223.docker.compose.utils.CommandlineOptionsFromBindingsExtractor.OptionType;
 import jsr223.docker.compose.utils.DockerComposePropertyLoader;
 import jsr223.docker.compose.utils.Log4jConfigurationLoader;
 import jsr223.docker.compose.utils.ScriptContextBindingsExtractor;
@@ -76,10 +77,10 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
     @Override
     public Object eval(String script, ScriptContext context) throws ScriptException {
         Bindings bindings = scriptContextBindingsExtractor.extractFrom(context);
-        List<String> dockerComposeOptions = commandlineOptionsFromBindingsExtractor.getDockerComposeCommandOptions(bindings);
+        Map<OptionType, List<String>> options = commandlineOptionsFromBindingsExtractor.getDockerComposeCommandOptions(bindings);
 
         // Create docker compose command
-        String[] dockerComposeCommand = dockerComposeCommandCreator.createDockerComposeExecutionCommand(dockerComposeOptions);
+        String[] dockerComposeCommand = dockerComposeCommandCreator.createDockerComposeExecutionCommand(options);
 
         // Create a process builder
         ProcessBuilder processBuilder = SingletonProcessBuilderFactory.getInstance()

@@ -30,11 +30,14 @@ import static org.junit.Assert.assertTrue;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import jsr223.docker.compose.utils.CommandlineOptionsFromBindingsExtractor.OptionType;
 import jsr223.docker.compose.utils.DockerComposePropertyLoader;
 import testing.utils.ReflectionUtilities;
 
@@ -88,11 +91,12 @@ public class DockerComposeCommandCreatorTest {
 
     @Test
     public void testThatDockerComposeUpOptionsArePlacedBehindUp() {
-        List<String> command = Arrays.asList(dockerCommandCreator.createDockerComposeExecutionCommand(Arrays.asList("--option1")));
+        Map<OptionType, List<String>> options = getOptions(Collections.EMPTY_LIST, Arrays.asList("--option1"));
+        List<String> cmd = Arrays.asList(dockerCommandCreator.createDockerComposeExecutionCommand(options));
 
-        int indexOfUp = command.indexOf(DockerComposeCommandCreator.START_CONTAINER_ARGUMENT);
+        int indexOfUp = cmd.indexOf(DockerComposeCommandCreator.START_CONTAINER_ARGUMENT);
 
-        assertTrue(command.get(indexOfUp + 1).equals("--option1"));
+        assertTrue(cmd.get(indexOfUp + 1).equals("--option1"));
     }
 
     /**
@@ -103,7 +107,7 @@ public class DockerComposeCommandCreatorTest {
      */
     @Test
     public void testDockerComposeExecutionCommand() throws NoSuchFieldException, IllegalAccessException {
-        String[] command = dockerCommandCreator.createDockerComposeExecutionCommand(Collections.<String> emptyList());
+        String[] command = dockerCommandCreator.createDockerComposeExecutionCommand(getOptions(null, null));
         int index = 0;
 
         // Check if sudo and compose command are added correctly
@@ -138,5 +142,20 @@ public class DockerComposeCommandCreatorTest {
                             DockerComposePropertyLoader.getInstance().getDockerComposeCommand(),
                             command[index++]);
         return index;
+    }
+
+    private Map<OptionType, List<String>> getOptions(List<String> generalOptions, List<String> upOptions) {
+        Map<OptionType, List<String>> options = new EnumMap<OptionType, List<String>>(OptionType.class);
+        if (generalOptions != null) {
+            options.put(OptionType.GENERAL_OPTION, generalOptions);
+        } else {
+            options.put(OptionType.GENERAL_OPTION, Collections.<String> emptyList());
+        }
+        if (upOptions != null) {
+            options.put(OptionType.UP_OPTION, upOptions);
+        } else {
+            options.put(OptionType.UP_OPTION, Collections.<String> emptyList());
+        }
+        return options;
     }
 }

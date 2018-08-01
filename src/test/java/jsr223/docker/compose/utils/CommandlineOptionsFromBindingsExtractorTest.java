@@ -36,6 +36,8 @@ import javax.script.SimpleBindings;
 
 import org.junit.Test;
 
+import jsr223.docker.compose.utils.CommandlineOptionsFromBindingsExtractor.OptionType;
+
 
 /**
  * @author ActiveEon Team
@@ -51,13 +53,23 @@ public class CommandlineOptionsFromBindingsExtractorTest {
         Map<String, String> genericInformation = new HashMap<>();
         genericInformation.put(CommandlineOptionsFromBindingsExtractor.DOCKER_COMPOSE_UP_COMMANDLINE_OPTIONS_KEY,
                                "--option1 --option2");
+        genericInformation.put(CommandlineOptionsFromBindingsExtractor.DOCKER_COMPOSE_COMMANDLINE_OPTIONS_KEY,
+                               "--verbose --host localhost");
+
         bindings.put(CommandlineOptionsFromBindingsExtractor.GENERIC_INFORMATION_KEY, genericInformation);
 
-        List<String> options = commandlineOptionsFromBindingsExtractor.getDockerComposeCommandOptions(bindings);
+        Map<OptionType, List<String>> options = commandlineOptionsFromBindingsExtractor.getDockerComposeCommandOptions(bindings);
+        List<String> upOptions = options.get(OptionType.UP_OPTION);
+        List<String> generalOptions = options.get(OptionType.GENERAL_OPTION);
 
-        assertTrue(options.contains("--option1"));
-        assertTrue(options.contains("--option2"));
-        assertTrue(options.size() == 2);
+        assertTrue(upOptions.contains("--option1"));
+        assertTrue(upOptions.contains("--option2"));
+        assertTrue(upOptions.size() == 2);
+
+        assertTrue(generalOptions.contains("--verbose"));
+        assertTrue(generalOptions.contains("--host"));
+        assertTrue(generalOptions.contains("localhost"));
+        assertTrue(generalOptions.size() == 3);
     }
 
     @Test
@@ -72,11 +84,12 @@ public class CommandlineOptionsFromBindingsExtractorTest {
                                "!SPLIT!");
         bindings.put(CommandlineOptionsFromBindingsExtractor.GENERIC_INFORMATION_KEY, genericInformation);
 
-        List<String> options = commandlineOptionsFromBindingsExtractor.getDockerComposeCommandOptions(bindings);
+        Map<OptionType, List<String>> options = commandlineOptionsFromBindingsExtractor.getDockerComposeCommandOptions(bindings);
+        List<String> upOptions = options.get(OptionType.UP_OPTION);
 
-        assertTrue(options.contains("--option1"));
-        assertTrue(options.contains("--option2"));
-        assertTrue(options.size() == 2);
+        assertTrue(upOptions.contains("--option1"));
+        assertTrue(upOptions.contains("--option2"));
+        assertTrue(upOptions.size() == 2);
     }
 
     @Test
@@ -87,17 +100,18 @@ public class CommandlineOptionsFromBindingsExtractorTest {
         Map<String, String> genericInformation = new HashMap<>();
         bindings.put(CommandlineOptionsFromBindingsExtractor.GENERIC_INFORMATION_KEY, genericInformation);
 
-        List<String> options = commandlineOptionsFromBindingsExtractor.getDockerComposeCommandOptions(bindings);
+        Map<OptionType, List<String>> options = commandlineOptionsFromBindingsExtractor.getDockerComposeCommandOptions(bindings);
+        List<String> upOptions = options.get(OptionType.UP_OPTION);
 
-        assertTrue(options.size() == 0);
+        assertTrue(upOptions.size() == 0);
     }
 
     @Test
-    public void testThatNoGenericInformationReturnEmptyList() {
+    public void testThatNoGenericInformationReturnEmptyMap() {
         CommandlineOptionsFromBindingsExtractor commandlineOptionsFromBindingsExtractor = new CommandlineOptionsFromBindingsExtractor();
 
         Bindings bindings = new SimpleBindings();
-        List<String> options = commandlineOptionsFromBindingsExtractor.getDockerComposeCommandOptions(bindings);
+        Map<OptionType, List<String>> options = commandlineOptionsFromBindingsExtractor.getDockerComposeCommandOptions(bindings);
 
         assertTrue(options.size() == 0);
     }
