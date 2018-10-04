@@ -100,6 +100,8 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
 
         File composeYamlFile = null;
 
+        Thread shutdownHook = null;
+
         try {
             composeYamlFile = configurationFileWriter.forceFileToDisk(scriptReplacedVariables,
                                                                       dockerComposeCommandCreator.YAML_FILE_NAME);
@@ -112,6 +114,23 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
                                                            context.getWriter(),
                                                            context.getErrorWriter(),
                                                            context.getReader());
+
+            // Set shutdown hook
+            final Process shutdownHookProcessReference = process;
+            shutdownHook = new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        stopAndRemoveContainers().waitFor();
+                    } catch (IOException e) {
+                        //TODO improve message here
+                    } catch (InterruptedException e) {
+                        log.info("Container execution interrupted. " + e.getMessage());
+                    }
+                }
+            };
+
+            Runtime.getRuntime().addShutdownHook(shutdownHook);
 
             // Wait for process to exit
             int exitValue = process.waitFor();
@@ -138,6 +157,9 @@ public class DockerComposeScriptEngine extends AbstractScriptEngine {
                 if (!deleted) {
                     log.warn("File: " + composeYamlFile.getAbsolutePath() + " was not deleted.");
                 }
+            }
+            if (shutdownHook != null) {
+                Runtime.getRuntime().removeShutdownHook(shutdownHook);
             }
         }
         return null;
